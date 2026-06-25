@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PersonasRouteImport } from './routes/personas'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ArchitectureRouteImport } from './routes/architecture'
 import { Route as IndexRouteImport } from './routes/index'
@@ -33,6 +34,11 @@ const PersonasRoute = PersonasRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/architecture': typeof ArchitectureRoute
   '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/architecture': typeof ArchitectureRoute
   '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/architecture': typeof ArchitectureRoute
   '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/architecture'
     | '/dashboard'
+    | '/docs'
     | '/login'
     | '/personas'
     | '/signup'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/architecture'
     | '/dashboard'
+    | '/docs'
     | '/login'
     | '/personas'
     | '/signup'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/architecture'
     | '/dashboard'
+    | '/docs'
     | '/login'
     | '/personas'
     | '/signup'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ArchitectureRoute: typeof ArchitectureRoute
   DashboardRoute: typeof DashboardRoute
+  DocsRoute: typeof DocsRoute
   LoginRoute: typeof LoginRoute
   PersonasRoute: typeof PersonasRoute
   SignupRoute: typeof SignupRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ArchitectureRoute: ArchitectureRoute,
   DashboardRoute: DashboardRoute,
+  DocsRoute: DocsRoute,
   LoginRoute: LoginRoute,
   PersonasRoute: PersonasRoute,
   SignupRoute: SignupRoute,

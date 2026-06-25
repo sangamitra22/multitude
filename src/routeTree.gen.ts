@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PersonasRouteImport } from './routes/personas'
 import { Route as LoginRouteImport } from './routes/login'
@@ -21,6 +22,11 @@ import { Route as AgentsRwaRouteImport } from './routes/agents.rwa'
 import { Route as AgentsDaoRouteImport } from './routes/agents.dao'
 import { Route as AgentsComplianceRouteImport } from './routes/agents.compliance'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/agents/compliance': typeof AgentsComplianceRoute
   '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/agents/compliance': typeof AgentsComplianceRoute
   '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/agents/compliance': typeof AgentsComplianceRoute
   '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/personas'
     | '/signup'
+    | '/sitemap.xml'
     | '/agents/compliance'
     | '/agents/dao'
     | '/agents/rwa'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/personas'
     | '/signup'
+    | '/sitemap.xml'
     | '/agents/compliance'
     | '/agents/dao'
     | '/agents/rwa'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/personas'
     | '/signup'
+    | '/sitemap.xml'
     | '/agents/compliance'
     | '/agents/dao'
     | '/agents/rwa'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PersonasRoute: typeof PersonasRoute
   SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AgentsComplianceRoute: typeof AgentsComplianceRoute
   AgentsDaoRoute: typeof AgentsDaoRoute
   AgentsRwaRoute: typeof AgentsRwaRoute
@@ -175,6 +188,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PersonasRoute: PersonasRoute,
   SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   AgentsComplianceRoute: AgentsComplianceRoute,
   AgentsDaoRoute: AgentsDaoRoute,
   AgentsRwaRoute: AgentsRwaRoute,

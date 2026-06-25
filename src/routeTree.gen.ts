@@ -9,38 +9,234 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as PersonasRouteImport } from './routes/personas'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ArchitectureRouteImport } from './routes/architecture'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgentsYieldRouteImport } from './routes/agents.yield'
+import { Route as AgentsRwaRouteImport } from './routes/agents.rwa'
+import { Route as AgentsDaoRouteImport } from './routes/agents.dao'
+import { Route as AgentsComplianceRouteImport } from './routes/agents.compliance'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PersonasRoute = PersonasRouteImport.update({
+  id: '/personas',
+  path: '/personas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArchitectureRoute = ArchitectureRouteImport.update({
+  id: '/architecture',
+  path: '/architecture',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgentsYieldRoute = AgentsYieldRouteImport.update({
+  id: '/agents/yield',
+  path: '/agents/yield',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsRwaRoute = AgentsRwaRouteImport.update({
+  id: '/agents/rwa',
+  path: '/agents/rwa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsDaoRoute = AgentsDaoRouteImport.update({
+  id: '/agents/dao',
+  path: '/agents/dao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsComplianceRoute = AgentsComplianceRouteImport.update({
+  id: '/agents/compliance',
+  path: '/agents/compliance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/architecture': typeof ArchitectureRoute
+  '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
+  '/login': typeof LoginRoute
+  '/personas': typeof PersonasRoute
+  '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/agents/compliance': typeof AgentsComplianceRoute
+  '/agents/dao': typeof AgentsDaoRoute
+  '/agents/rwa': typeof AgentsRwaRoute
+  '/agents/yield': typeof AgentsYieldRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/architecture': typeof ArchitectureRoute
+  '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
+  '/login': typeof LoginRoute
+  '/personas': typeof PersonasRoute
+  '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/agents/compliance': typeof AgentsComplianceRoute
+  '/agents/dao': typeof AgentsDaoRoute
+  '/agents/rwa': typeof AgentsRwaRoute
+  '/agents/yield': typeof AgentsYieldRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/architecture': typeof ArchitectureRoute
+  '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
+  '/login': typeof LoginRoute
+  '/personas': typeof PersonasRoute
+  '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/agents/compliance': typeof AgentsComplianceRoute
+  '/agents/dao': typeof AgentsDaoRoute
+  '/agents/rwa': typeof AgentsRwaRoute
+  '/agents/yield': typeof AgentsYieldRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/architecture'
+    | '/dashboard'
+    | '/docs'
+    | '/login'
+    | '/personas'
+    | '/signup'
+    | '/sitemap.xml'
+    | '/agents/compliance'
+    | '/agents/dao'
+    | '/agents/rwa'
+    | '/agents/yield'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/architecture'
+    | '/dashboard'
+    | '/docs'
+    | '/login'
+    | '/personas'
+    | '/signup'
+    | '/sitemap.xml'
+    | '/agents/compliance'
+    | '/agents/dao'
+    | '/agents/rwa'
+    | '/agents/yield'
+  id:
+    | '__root__'
+    | '/'
+    | '/architecture'
+    | '/dashboard'
+    | '/docs'
+    | '/login'
+    | '/personas'
+    | '/signup'
+    | '/sitemap.xml'
+    | '/agents/compliance'
+    | '/agents/dao'
+    | '/agents/rwa'
+    | '/agents/yield'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArchitectureRoute: typeof ArchitectureRoute
+  DashboardRoute: typeof DashboardRoute
+  DocsRoute: typeof DocsRoute
+  LoginRoute: typeof LoginRoute
+  PersonasRoute: typeof PersonasRoute
+  SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  AgentsComplianceRoute: typeof AgentsComplianceRoute
+  AgentsDaoRoute: typeof AgentsDaoRoute
+  AgentsRwaRoute: typeof AgentsRwaRoute
+  AgentsYieldRoute: typeof AgentsYieldRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/personas': {
+      id: '/personas'
+      path: '/personas'
+      fullPath: '/personas'
+      preLoaderRoute: typeof PersonasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/architecture': {
+      id: '/architecture'
+      path: '/architecture'
+      fullPath: '/architecture'
+      preLoaderRoute: typeof ArchitectureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +244,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agents/yield': {
+      id: '/agents/yield'
+      path: '/agents/yield'
+      fullPath: '/agents/yield'
+      preLoaderRoute: typeof AgentsYieldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents/rwa': {
+      id: '/agents/rwa'
+      path: '/agents/rwa'
+      fullPath: '/agents/rwa'
+      preLoaderRoute: typeof AgentsRwaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents/dao': {
+      id: '/agents/dao'
+      path: '/agents/dao'
+      fullPath: '/agents/dao'
+      preLoaderRoute: typeof AgentsDaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents/compliance': {
+      id: '/agents/compliance'
+      path: '/agents/compliance'
+      fullPath: '/agents/compliance'
+      preLoaderRoute: typeof AgentsComplianceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArchitectureRoute: ArchitectureRoute,
+  DashboardRoute: DashboardRoute,
+  DocsRoute: DocsRoute,
+  LoginRoute: LoginRoute,
+  PersonasRoute: PersonasRoute,
+  SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  AgentsComplianceRoute: AgentsComplianceRoute,
+  AgentsDaoRoute: AgentsDaoRoute,
+  AgentsRwaRoute: AgentsRwaRoute,
+  AgentsYieldRoute: AgentsYieldRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

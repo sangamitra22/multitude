@@ -16,6 +16,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentsYieldRouteImport } from './routes/agents.yield'
 import { Route as AgentsRwaRouteImport } from './routes/agents.rwa'
+import { Route as AgentsDaoRouteImport } from './routes/agents.dao'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -52,6 +53,11 @@ const AgentsRwaRoute = AgentsRwaRouteImport.update({
   path: '/agents/rwa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgentsDaoRoute = AgentsDaoRouteImport.update({
+  id: '/agents/dao',
+  path: '/agents/dao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
+  '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
   '/agents/yield': typeof AgentsYieldRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
+  '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
   '/agents/yield': typeof AgentsYieldRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
+  '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
   '/agents/yield': typeof AgentsYieldRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/personas'
     | '/signup'
+    | '/agents/dao'
     | '/agents/rwa'
     | '/agents/yield'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/personas'
     | '/signup'
+    | '/agents/dao'
     | '/agents/rwa'
     | '/agents/yield'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/personas'
     | '/signup'
+    | '/agents/dao'
     | '/agents/rwa'
     | '/agents/yield'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PersonasRoute: typeof PersonasRoute
   SignupRoute: typeof SignupRoute
+  AgentsDaoRoute: typeof AgentsDaoRoute
   AgentsRwaRoute: typeof AgentsRwaRoute
   AgentsYieldRoute: typeof AgentsYieldRoute
 }
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsRwaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agents/dao': {
+      id: '/agents/dao'
+      path: '/agents/dao'
+      fullPath: '/agents/dao'
+      preLoaderRoute: typeof AgentsDaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PersonasRoute: PersonasRoute,
   SignupRoute: SignupRoute,
+  AgentsDaoRoute: AgentsDaoRoute,
   AgentsRwaRoute: AgentsRwaRoute,
   AgentsYieldRoute: AgentsYieldRoute,
 }

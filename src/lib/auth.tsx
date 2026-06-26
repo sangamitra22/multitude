@@ -20,7 +20,9 @@ interface AuthCtx {
   signup: (u: User & { password: string }) => void;
   login: (email: string, password: string) => boolean;
   logout: () => void;
+  setPersona: (p: Persona) => void;
 }
+
 
 const Ctx = createContext<AuthCtx | null>(null);
 const KEY = "caspercrew.session";

@@ -34,6 +34,8 @@ function Wallet() {
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState<SignedTx[]>([]);
   const [form, setForm] = useState({ to: "casper1q...recipient", amount: "100", memo: "Agent settlement" });
+  const [selectedTx, setSelectedTx] = useState<(typeof TXS)[number] | null>(null);
+
 
   if (!user) {
     return (

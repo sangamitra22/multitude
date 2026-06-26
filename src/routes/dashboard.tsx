@@ -166,23 +166,104 @@ function routeForAgent(id: string) {
 }
 
 function PersonaCard({ persona }: { persona: string }) {
-  const map: Record<string, { title: string; items: string[] }> = {
-    "defi-investor": { title: "Investor cockpit", items: ["Top yield: RWA-Bond Pool · 18.6% APY", "Auto-rebalance scheduled in 3h", "Yieldra suggests +5% stablecoin allocation"] },
-    "rwa-operator": { title: "Operator console", items: ["3 oracle feeds active · 0 deviations", "Reputation score: 96/100", "Pending attestation: 'Treasury bill CUSIP 912797GR8'"] },
-    "dao-manager": { title: "Governance desk", items: ["2 active proposals · 1 needs review", "Quorra recommends: pass #214, reject #215", "Treasury: 1.2M CSPR · runway 18 months"] },
-    "compliance-officer": { title: "Compliance ops", items: ["12 KYC attestations issued today", "0 sanctions matches · 1 PEP review", "ZK proof verification p99: 320ms"] },
-    developer: { title: "Builder workbench", items: ["MCP playground ready", "Last deploy: yield-router.odra v0.4.2", "Open: 'Add x402 cap to Verus'"] },
+  const map: Record<string, { title: string; kpis: { label: string; value: string; delta?: string }[]; items: string[]; nextActions: { label: string; to: string }[] }> = {
+    "defi-investor": {
+      title: "Investor cockpit",
+      kpis: [
+        { label: "Portfolio yield", value: "14.2% APY", delta: "+0.6%" },
+        { label: "Risk-adj. score", value: "82 / 100", delta: "stable" },
+        { label: "Idle capital", value: "1,240 CSPR", delta: "deploy" },
+      ],
+      items: ["Top yield: RWA-Bond Pool · 18.6% APY", "Auto-rebalance scheduled in 3h", "Yieldra suggests +5% stablecoin allocation"],
+      nextActions: [
+        { label: "Review Yieldra routes", to: "/agents/yield" },
+        { label: "Sign rebalance tx", to: "/wallet" },
+      ],
+    },
+    "rwa-operator": {
+      title: "Operator console",
+      kpis: [
+        { label: "Active feeds", value: "3 / 3" },
+        { label: "Reputation", value: "96 / 100", delta: "+2" },
+        { label: "Attestations 24h", value: "47" },
+      ],
+      items: ["3 oracle feeds active · 0 deviations", "Reputation score: 96/100", "Pending attestation: Treasury bill CUSIP 912797GR8"],
+      nextActions: [
+        { label: "Approve RWA attestation", to: "/agents/rwa" },
+        { label: "Sign on-chain post", to: "/wallet" },
+      ],
+    },
+    "dao-manager": {
+      title: "Governance desk",
+      kpis: [
+        { label: "Open proposals", value: "2", delta: "1 urgent" },
+        { label: "Treasury", value: "1.2M CSPR" },
+        { label: "Runway", value: "18 mo" },
+      ],
+      items: ["2 active proposals · 1 needs review", "Quorra recommends: pass #214, reject #215", "Treasury: 1.2M CSPR · runway 18 months"],
+      nextActions: [
+        { label: "Review proposal #214", to: "/agents/dao" },
+        { label: "Cast signed vote", to: "/wallet" },
+      ],
+    },
+    "compliance-officer": {
+      title: "Compliance ops",
+      kpis: [
+        { label: "KYC today", value: "12" },
+        { label: "Sanctions hits", value: "0", delta: "clean" },
+        { label: "ZK p99", value: "320ms" },
+      ],
+      items: ["12 KYC attestations issued today", "0 sanctions matches · 1 PEP review", "ZK proof verification p99: 320ms"],
+      nextActions: [
+        { label: "Open Sentinel queue", to: "/agents/compliance" },
+        { label: "Sign attestation", to: "/wallet" },
+      ],
+    },
+    developer: {
+      title: "Builder workbench",
+      kpis: [
+        { label: "Deploys 24h", value: "4" },
+        { label: "MCP latency p99", value: "142ms" },
+        { label: "x402 spend", value: "0.48 CSPR" },
+      ],
+      items: ["MCP playground ready", "Last deploy: yield-router.odra v0.4.2", "Open: Add x402 cap to Verus"],
+      nextActions: [
+        { label: "Open MCP playground", to: "/agents/yield" },
+        { label: "Test wallet signing", to: "/wallet" },
+      ],
+    },
   };
   const card = map[persona] ?? map["defi-investor"];
   return (
-    <div className="glass-card p-6">
-      <div className="text-xs text-primary font-mono uppercase tracking-wider mb-2">Tailored for you</div>
-      <h2 className="font-bold text-lg mb-3">{card.title}</h2>
+    <div className="glass-card p-6 space-y-5">
+      <div>
+        <div className="text-xs text-primary font-mono uppercase tracking-wider mb-1">Tailored for you</div>
+        <h2 className="font-bold text-lg">{card.title}</h2>
+      </div>
+      <div className="grid sm:grid-cols-3 gap-3">
+        {card.kpis.map((k) => (
+          <div key={k.label} className="p-4 rounded-lg bg-secondary/40">
+            <div className="text-xs text-muted-foreground">{k.label}</div>
+            <div className="font-bold text-lg mt-1">{k.value}</div>
+            {k.delta && <div className="text-xs text-primary mt-0.5">{k.delta}</div>}
+          </div>
+        ))}
+      </div>
       <ul className="grid sm:grid-cols-3 gap-3 text-sm">
         {card.items.map((i) => (
-          <li key={i} className="p-3 rounded-lg bg-secondary/40">{i}</li>
+          <li key={i} className="p-3 rounded-lg bg-secondary/20 border border-border/60">{i}</li>
         ))}
       </ul>
+      <div>
+        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Next actions</div>
+        <div className="flex flex-wrap gap-2">
+          {card.nextActions.map((a) => (
+            <Link key={a.to + a.label} to={a.to} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition">
+              {a.label} →
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

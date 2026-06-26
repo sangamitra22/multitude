@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PersonasRouteImport } from './routes/personas'
@@ -22,6 +23,11 @@ import { Route as AgentsRwaRouteImport } from './routes/agents.rwa'
 import { Route as AgentsDaoRouteImport } from './routes/agents.dao'
 import { Route as AgentsComplianceRouteImport } from './routes/agents.compliance'
 
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wallet': typeof WalletRoute
   '/agents/compliance': typeof AgentsComplianceRoute
   '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wallet': typeof WalletRoute
   '/agents/compliance': typeof AgentsComplianceRoute
   '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/personas': typeof PersonasRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wallet': typeof WalletRoute
   '/agents/compliance': typeof AgentsComplianceRoute
   '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/personas'
     | '/signup'
     | '/sitemap.xml'
+    | '/wallet'
     | '/agents/compliance'
     | '/agents/dao'
     | '/agents/rwa'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/personas'
     | '/signup'
     | '/sitemap.xml'
+    | '/wallet'
     | '/agents/compliance'
     | '/agents/dao'
     | '/agents/rwa'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/personas'
     | '/signup'
     | '/sitemap.xml'
+    | '/wallet'
     | '/agents/compliance'
     | '/agents/dao'
     | '/agents/rwa'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   PersonasRoute: typeof PersonasRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  WalletRoute: typeof WalletRoute
   AgentsComplianceRoute: typeof AgentsComplianceRoute
   AgentsDaoRoute: typeof AgentsDaoRoute
   AgentsRwaRoute: typeof AgentsRwaRoute
@@ -188,6 +201,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   PersonasRoute: PersonasRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  WalletRoute: WalletRoute,
   AgentsComplianceRoute: AgentsComplianceRoute,
   AgentsDaoRoute: AgentsDaoRoute,
   AgentsRwaRoute: AgentsRwaRoute,

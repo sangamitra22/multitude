@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { AgentGate } from "@/lib/personaAgents";
+
 
 export const Route = createFileRoute("/agents/compliance")({
   head: () => ({
@@ -11,7 +13,7 @@ export const Route = createFileRoute("/agents/compliance")({
     ],
     links: [{ rel: "canonical", href: "/agents/compliance" }],
   }),
-  component: Compliance,
+  component: () => <AgentGate agent="compliance"><Compliance /></AgentGate>,
 });
 
 function Compliance() {

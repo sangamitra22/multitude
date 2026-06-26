@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { TXS } from "@/lib/mockData";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
@@ -32,6 +34,8 @@ function Wallet() {
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState<SignedTx[]>([]);
   const [form, setForm] = useState({ to: "casper1q...recipient", amount: "100", memo: "Agent settlement" });
+  const [selectedTx, setSelectedTx] = useState<(typeof TXS)[number] | null>(null);
+
 
   if (!user) {
     return (
@@ -144,23 +148,113 @@ function Wallet() {
       {/* Full history */}
       <div className="glass-card p-6 overflow-x-auto">
         <h2 className="font-bold mb-4">Transaction history</h2>
+        <p className="text-xs text-muted-foreground mb-3">Tap any row to inspect signers and the simulated on-chain pipeline.</p>
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground uppercase">
-            <tr><th className="text-left py-2">Hash</th><th className="text-left">Action</th><th className="text-left">Agent</th><th className="text-left">Status</th><th className="text-left">Time</th></tr>
+            <tr><th className="text-left py-2">Hash</th><th className="text-left">Action</th><th className="text-left">Agent</th><th className="text-left">Status</th><th className="text-left">Time</th><th></th></tr>
           </thead>
           <tbody>
             {TXS.map((t) => (
-              <tr key={t.hash} className="border-t border-border">
+              <tr
+                key={t.hash}
+                onClick={() => setSelectedTx(t)}
+                className="border-t border-border cursor-pointer hover:bg-secondary/40 transition"
+              >
                 <td className="py-2 font-mono text-xs">{t.hash}</td>
                 <td>{t.action}</td>
                 <td className="text-primary">{t.agent}</td>
                 <td><span className={`text-xs px-2 py-0.5 rounded-full ${t.status === "Confirmed" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{t.status}</span></td>
                 <td className="text-muted-foreground text-xs">{t.time}</td>
+                <td className="text-xs text-primary text-right pr-2">Details →</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <TxDetailsDrawer tx={selectedTx} onClose={() => setSelectedTx(null)} />
     </div>
   );
 }
+
+type Tx = (typeof TXS)[number];
+
+function TxDetailsDrawer({ tx, onClose }: { tx: Tx | null; onClose: () => void }) {
+  const steps: { label: string; detail: string; done: boolean }[] = tx
+    ? [
+        { label: "Intent built", detail: `Agent ${tx.agent} composed the call from MCP context.`, done: true },
+        { label: "x402 budget reserved", detail: "0.0042 CSPR earmarked for downstream MCP + CSPR.cloud calls.", done: true },
+        { label: "CSPR.click signature", detail: "Signed locally by user wallet 0x8f3a…9c2b (ed25519).", done: true },
+        { label: "Broadcast to Casper", detail: "Submitted via CSPR.cloud RPC pool · gossip latency 142ms.", done: true },
+        { label: "On-chain inclusion", detail: tx.status === "Confirmed" ? "Included in block #2,481,902 — finalized." : "Awaiting validator quorum (3 of 5).", done: tx.status === "Confirmed" },
+        { label: "Audit log", detail: "Appended to CasperCrew monitoring trail with agent + persona attribution.", done: tx.status === "Confirmed" },
+      ]
+    : [];
+
+  return (
+    <Sheet open={!!tx} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        {tx && (
+          <>
+            <SheetHeader>
+              <SheetTitle className="font-mono text-base">{tx.hash}</SheetTitle>
+              <SheetDescription>{tx.action}</SheetDescription>
+            </SheetHeader>
+
+            <div className="mt-6 space-y-5 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Status" value={
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${tx.status === "Confirmed" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{tx.status}</span>
+                } />
+                <Field label="Submitted" value={tx.time} />
+                <Field label="Initiating agent" value={<span className="text-primary">{tx.agent}</span>} />
+                <Field label="Network" value="Casper Mainnet" />
+                <Field label="Gas (mock)" value="0.18 CSPR" />
+                <Field label="Block" value={tx.status === "Confirmed" ? "#2,481,902" : "pending"} />
+              </div>
+
+              <div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Signed by</div>
+                <div className="p-3 rounded-lg bg-secondary/40 space-y-1">
+                  <div className="flex justify-between"><span className="text-muted-foreground">User wallet</span><span className="font-mono text-xs">0x8f3a…9c2b</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Agent key</span><span className="font-mono text-xs">agent:{tx.agent.toLowerCase()}#01</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Signer skill</span><span>CSPR.click</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Scheme</span><span>ed25519</span></div>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Simulated on-chain pipeline</div>
+                <ol className="space-y-3">
+                  {steps.map((s, i) => (
+                    <li key={s.label} className="flex gap-3">
+                      <div className={`mt-0.5 w-6 h-6 rounded-full grid place-items-center text-xs font-bold shrink-0 ${s.done ? "bg-success/20 text-success" : "bg-warning/20 text-warning"}`}>
+                        {s.done ? "✓" : i + 1}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-semibold">{s.label}</div>
+                        <div className="text-xs text-muted-foreground">{s.detail}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <p className="text-xs text-muted-foreground">Mock data for prototype demo. No real funds move on Casper.</p>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function Field({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="p-3 rounded-lg bg-secondary/40">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="mt-1 font-semibold text-sm">{value}</div>
+    </div>
+  );
+}
+

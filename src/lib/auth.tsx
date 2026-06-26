@@ -20,7 +20,9 @@ interface AuthCtx {
   signup: (u: User & { password: string }) => void;
   login: (email: string, password: string) => boolean;
   logout: () => void;
+  setPersona: (p: Persona) => void;
 }
+
 
 const Ctx = createContext<AuthCtx | null>(null);
 const KEY = "caspercrew.session";
@@ -61,8 +63,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  return <Ctx.Provider value={{ user, signup, login, logout }}>{children}</Ctx.Provider>;
+  const setPersona: AuthCtx["setPersona"] = (p) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, persona: p };
+      localStorage.setItem(KEY, JSON.stringify(next));
+      const users = JSON.parse(localStorage.getItem(DB) || "{}");
+      const key = prev.email.toLowerCase();
+      if (users[key]) {
+        users[key] = { ...users[key], persona: p };
+        localStorage.setItem(DB, JSON.stringify(users));
+      }
+      return next;
+    });
+  };
+
+  return <Ctx.Provider value={{ user, signup, login, logout, setPersona }}>{children}</Ctx.Provider>;
 }
+
 
 export function useAuth() {
   const v = useContext(Ctx);

@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { AgentGate } from "@/lib/personaAgents";
+
 
 export const Route = createFileRoute("/agents/dao")({
   head: () => ({
@@ -11,7 +13,7 @@ export const Route = createFileRoute("/agents/dao")({
     ],
     links: [{ rel: "canonical", href: "/agents/dao" }],
   }),
-  component: DAO,
+  component: () => <AgentGate agent="dao"><DAO /></AgentGate>,
 });
 
 const DEBATE = [

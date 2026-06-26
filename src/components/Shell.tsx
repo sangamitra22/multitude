@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
+import { PERSONA_AGENTS } from "@/lib/personaAgents";
+
 
 export function GhostLogo({ size = 28 }: { size?: number }) {
   return (
@@ -36,8 +38,13 @@ export function Header() {
             <>
               <Link to="/dashboard" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Dashboard</Link>
               <Link to="/wallet" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Wallet</Link>
-              <Link to="/agents/yield" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Agents</Link>
+              {(() => {
+                const first = PERSONA_AGENTS[user.persona]?.[0] ?? "yield";
+                const path = first === "rwa" ? "/agents/rwa" : first === "dao" ? "/agents/dao" : first === "compliance" ? "/agents/compliance" : "/agents/yield";
+                return <Link to={path} className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Agents</Link>;
+              })()}
             </>
+
           ) : (
             <>
               <Link to="/personas" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Personas</Link>

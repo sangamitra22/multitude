@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AgentGate } from "@/lib/personaAgents";
+
 
 export const Route = createFileRoute("/agents/rwa")({
   head: () => ({
@@ -10,7 +12,7 @@ export const Route = createFileRoute("/agents/rwa")({
     ],
     links: [{ rel: "canonical", href: "/agents/rwa" }],
   }),
-  component: RWA,
+  component: () => <AgentGate agent="rwa"><RWA /></AgentGate>,
 });
 
 function RWA() {

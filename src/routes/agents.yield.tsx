@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { YIELD_OPPS } from "@/lib/mockData";
+import { AgentGate } from "@/lib/personaAgents";
+
 
 export const Route = createFileRoute("/agents/yield")({
   head: () => ({
@@ -12,7 +14,7 @@ export const Route = createFileRoute("/agents/yield")({
     ],
     links: [{ rel: "canonical", href: "/agents/yield" }],
   }),
-  component: Yield,
+  component: () => <AgentGate agent="yield"><Yield /></AgentGate>,
 });
 
 function Yield() {

@@ -32,10 +32,19 @@ export function Header() {
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
           <Link to="/" className="hover:text-foreground transition" activeOptions={{ exact: true }} activeProps={{ className: "text-foreground" }}>Home</Link>
-          <Link to="/personas" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Personas</Link>
-          <Link to="/architecture" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Architecture</Link>
-          <Link to="/docs" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Docs</Link>
-          {user && <Link to="/dashboard" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Dashboard</Link>}
+          {user ? (
+            <>
+              <Link to="/dashboard" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Dashboard</Link>
+              <Link to="/wallet" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Wallet</Link>
+              <Link to="/agents/yield" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Agents</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/personas" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Personas</Link>
+              <Link to="/architecture" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Architecture</Link>
+              <Link to="/docs" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Docs</Link>
+            </>
+          )}
         </nav>
         <div className="flex items-center gap-2">
           {user ? (

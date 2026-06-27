@@ -34,7 +34,7 @@ export function AgentGate({ agent, children }: { agent: AgentId; children: React
     return (
       <div className="max-w-md mx-auto px-6 py-24 text-center">
         <h1 className="text-2xl font-bold mb-3">Sign in required</h1>
-        <p className="text-muted-foreground mb-6">Log in to access CasperCrew agent workflows.</p>
+        <p className="text-muted-foreground mb-6">Log in to access Multitude agent workflows.</p>
         <Link to="/login" className="px-5 py-2.5 rounded-md bg-primary text-primary-foreground font-semibold">Go to login</Link>
       </div>
     );

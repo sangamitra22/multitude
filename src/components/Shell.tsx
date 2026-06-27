@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { PERSONA_AGENTS } from "@/lib/personaAgents";
 
 
-export function GhostLogo({ size = 28 }: { size?: number }) {
+export function BrandMark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" className="animate-ghost" aria-hidden>
       <defs>
@@ -29,8 +29,8 @@ export function Header() {
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/70 border-b border-border">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-2 font-bold text-lg">
-          <GhostLogo />
-          <span className="glow-text">CasperCrew</span>
+          <BrandMark />
+          <span className="glow-text">Multitude</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
           <Link to="/" className="hover:text-foreground transition" activeOptions={{ exact: true }} activeProps={{ className: "text-foreground" }}>Home</Link>
@@ -79,7 +79,7 @@ export function Footer() {
     <footer className="border-t border-border mt-24">
       <div className="max-w-7xl mx-auto px-6 py-10 grid gap-8 md:grid-cols-4 text-sm">
         <div>
-          <div className="flex items-center gap-2 font-bold mb-2"><GhostLogo size={22} /> CasperCrew</div>
+          <div className="flex items-center gap-2 font-bold mb-2"><BrandMark size={22} /> Multitude</div>
           <p className="text-muted-foreground">Your friendly crew of autonomous AI agents for the Casper economy.</p>
         </div>
         <div>
@@ -100,13 +100,13 @@ export function Footer() {
         <div>
           <div className="font-semibold mb-2">Disclaimer</div>
           <p className="text-xs text-muted-foreground">
-            CasperCrew is a hackathon prototype. Not financial, legal, or investment advice.
+            Multitude is a hackathon prototype. Not financial, legal, or investment advice.
             Mock data shown throughout. AI agents and blockchain actions carry inherent risks.
           </p>
         </div>
       </div>
       <div className="border-t border-border py-4 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} CasperCrew · Built for the Casper Agentic Buildathon
+        © {new Date().getFullYear()} Multitude · Built for the Casper Agentic Buildathon
       </div>
     </footer>
   );

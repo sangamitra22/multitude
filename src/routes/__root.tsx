@@ -79,13 +79,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CasperCrew — Autonomous AI Agents for the Casper Economy" },
-      { name: "description", content: "CasperCrew is a friendly crew of autonomous AI agents for DeFi, RWA, DAO governance, compliance and M2M commerce on the Casper blockchain." },
-      { name: "author", content: "CasperCrew" },
-      { property: "og:title", content: "CasperCrew — Autonomous AI Agents for Casper" },
+      { title: "Multitude — Autonomous AI Agents for the Casper Economy" },
+      { name: "description", content: "Multitude is a friendly crew of autonomous AI agents for DeFi, RWA, DAO governance, compliance and M2M commerce on the Casper blockchain." },
+      { name: "author", content: "Multitude" },
+      { property: "og:title", content: "Multitude — Autonomous AI Agents for Casper" },
       { property: "og:description", content: "A friendly crew of autonomous AI agents for the Casper economy." },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "CasperCrew" },
+      { property: "og:site_name", content: "Multitude" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [

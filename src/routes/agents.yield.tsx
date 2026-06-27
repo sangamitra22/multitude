@@ -7,7 +7,7 @@ import { AgentGate } from "@/lib/personaAgents";
 export const Route = createFileRoute("/agents/yield")({
   head: () => ({
     meta: [
-      { title: "Yieldra — Autonomous Yield Router | CasperCrew" },
+      { title: "Yieldra — Autonomous Yield Router | Multitude" },
       { name: "description", content: "Watch Yieldra compare DeFi opportunities on Casper by APY, risk, liquidity and confidence — then prepare a routed transaction." },
       { property: "og:title", content: "Yieldra — Autonomous Yield Router" },
       { property: "og:url", content: "/agents/yield" },

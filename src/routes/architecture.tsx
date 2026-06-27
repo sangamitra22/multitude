@@ -3,9 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/architecture")({
   head: () => ({
     meta: [
-      { title: "Architecture — CasperCrew" },
-      { name: "description", content: "How CasperCrew connects users, AI agents, MCP servers, CSPR.cloud, x402, Odra contracts and the Casper blockchain." },
-      { property: "og:title", content: "Architecture — CasperCrew" },
+      { title: "Architecture — Multitude" },
+      { name: "description", content: "How Multitude connects users, AI agents, MCP servers, CSPR.cloud, x402, Odra contracts and the Casper blockchain." },
+      { property: "og:title", content: "Architecture — Multitude" },
       { property: "og:url", content: "/architecture" },
     ],
     links: [{ rel: "canonical", href: "/architecture" }],
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/architecture")({
 
 const LAYERS = [
   { t: "User", d: "Picks a persona, signs in, gives intents." },
-  { t: "CasperCrew UI", d: "React + TanStack Start. Dashboard, workflows, audit trails." },
+  { t: "Multitude UI", d: "React + TanStack Start. Dashboard, workflows, audit trails." },
   { t: "AI Agent Orchestrator", d: "Routes user intents to specialized agents; plans tool calls." },
   { t: "MCP Servers", d: "Casper-aware tools: balance, price, defi, governance, contract intros." },
   { t: "CSPR.cloud APIs", d: "Scalable read/write infrastructure for the agent fleet." },

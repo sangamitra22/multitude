@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 export const Route = createFileRoute("/wallet")({
   head: () => ({
     meta: [
-      { title: "Wallet — CasperCrew" },
+      { title: "Wallet — Multitude" },
       { name: "description", content: "Wallet operations console: connect, sign, and review on-chain history." },
       { name: "robots", content: "noindex" },
     ],
@@ -187,7 +187,7 @@ function TxDetailsDrawer({ tx, onClose }: { tx: Tx | null; onClose: () => void }
         { label: "CSPR.click signature", detail: "Signed locally by user wallet 0x8f3a…9c2b (ed25519).", done: true },
         { label: "Broadcast to Casper", detail: "Submitted via CSPR.cloud RPC pool · gossip latency 142ms.", done: true },
         { label: "On-chain inclusion", detail: tx.status === "Confirmed" ? "Included in block #2,481,902 — finalized." : "Awaiting validator quorum (3 of 5).", done: tx.status === "Confirmed" },
-        { label: "Audit log", detail: "Appended to CasperCrew monitoring trail with agent + persona attribution.", done: tx.status === "Confirmed" },
+        { label: "Audit log", detail: "Appended to Multitude monitoring trail with agent + persona attribution.", done: tx.status === "Confirmed" },
       ]
     : [];
 

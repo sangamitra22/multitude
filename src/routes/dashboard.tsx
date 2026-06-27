@@ -5,9 +5,9 @@ import { AGENTS, TXS, MICROPAYMENTS, ALERTS } from "@/lib/mockData";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — CasperCrew" },
-      { name: "description", content: "Your CasperCrew control center: agents, wallet, micropayments, on-chain actions and alerts." },
-      { property: "og:title", content: "Dashboard — CasperCrew" },
+      { title: "Dashboard — Multitude" },
+      { name: "description", content: "Your Multitude control center: agents, wallet, micropayments, on-chain actions and alerts." },
+      { property: "og:title", content: "Dashboard — Multitude" },
       { property: "og:url", content: "/dashboard" },
       { name: "robots", content: "noindex" },
     ],
@@ -22,7 +22,7 @@ function Dashboard() {
     return (
       <div className="max-w-md mx-auto px-6 py-24 text-center">
         <h1 className="text-2xl font-bold mb-3">Please sign in</h1>
-        <p className="text-muted-foreground mb-6">Your CasperCrew dashboard is protected.</p>
+        <p className="text-muted-foreground mb-6">Your Multitude dashboard is protected.</p>
         <Link to="/login" className="px-5 py-2.5 rounded-md bg-primary text-primary-foreground font-semibold">Go to login</Link>
       </div>
     );

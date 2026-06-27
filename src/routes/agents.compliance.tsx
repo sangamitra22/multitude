@@ -6,7 +6,7 @@ import { AgentGate } from "@/lib/personaAgents";
 export const Route = createFileRoute("/agents/compliance")({
   head: () => ({
     meta: [
-      { title: "Sentinel — Privacy-Preserving KYC | CasperCrew" },
+      { title: "Sentinel — Privacy-Preserving KYC | Multitude" },
       { name: "description", content: "Sentinel runs KYC/AML checks with zero-knowledge attestations, issues Casper-anchored compliance tokens, and manages revocation." },
       { property: "og:title", content: "Sentinel — Privacy-Preserving KYC" },
       { property: "og:url", content: "/agents/compliance" },
@@ -66,7 +66,7 @@ x402:     0.004 CSPR`}</pre>
           <div className="text-center py-8">
             <div className="text-5xl mb-3">✅</div>
             <h3 className="font-bold text-xl">Compliance token issued</h3>
-            <p className="text-muted-foreground mt-2">Other CasperCrew agents can now verify your KYC status without ever seeing your data.</p>
+            <p className="text-muted-foreground mt-2">Other Multitude agents can now verify your KYC status without ever seeing your data.</p>
           </div>
         )}
       </div>

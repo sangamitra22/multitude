@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AGENTS } from "@/lib/mockData";
+import heroImg from "@/assets/multitude-hero.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({

@@ -24,8 +24,10 @@ function Home() {
   return (
     <>
       {/* Hero */}
-      <div className="hero-bg">
-        <Section className="!py-28 text-center">
+      <div className="hero-bg relative overflow-hidden">
+        <img src={heroImg} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/20 to-background pointer-events-none" />
+        <Section className="!py-28 text-center relative">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-card/50 text-xs text-muted-foreground mb-6">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
             Live prototype · Casper Agentic Buildathon

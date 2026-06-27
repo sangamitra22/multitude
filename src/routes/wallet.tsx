@@ -145,32 +145,8 @@ function Wallet() {
         </div>
       </div>
 
-      {/* Full history */}
-      <div className="glass-card p-6 overflow-x-auto">
-        <h2 className="font-bold mb-4">Transaction history</h2>
-        <p className="text-xs text-muted-foreground mb-3">Tap any row to inspect signers and the simulated on-chain pipeline.</p>
-        <table className="w-full text-sm">
-          <thead className="text-xs text-muted-foreground uppercase">
-            <tr><th className="text-left py-2">Hash</th><th className="text-left">Action</th><th className="text-left">Agent</th><th className="text-left">Status</th><th className="text-left">Time</th><th></th></tr>
-          </thead>
-          <tbody>
-            {TXS.map((t) => (
-              <tr
-                key={t.hash}
-                onClick={() => setSelectedTx(t)}
-                className="border-t border-border cursor-pointer hover:bg-secondary/40 transition"
-              >
-                <td className="py-2 font-mono text-xs">{t.hash}</td>
-                <td>{t.action}</td>
-                <td className="text-primary">{t.agent}</td>
-                <td><span className={`text-xs px-2 py-0.5 rounded-full ${t.status === "Confirmed" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{t.status}</span></td>
-                <td className="text-muted-foreground text-xs">{t.time}</td>
-                <td className="text-xs text-primary text-right pr-2">Details →</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <FullHistory onSelect={setSelectedTx} />
+
 
       <TxDetailsDrawer tx={selectedTx} onClose={() => setSelectedTx(null)} />
     </div>

@@ -42,40 +42,43 @@ export function AgentGate({ agent, children }: { agent: AgentId; children: React
 
   const allowed = PERSONA_AGENTS[user.persona] ?? [];
   if (!allowed.includes(agent)) {
-    return (
-      <div className="max-w-2xl mx-auto px-6 py-20">
-        <div className="glass-card p-8 text-center space-y-4">
-          <div className="text-5xl">🔒</div>
-          <h1 className="text-2xl font-bold">Agent locked for your persona</h1>
-          <p className="text-muted-foreground">
-            You signed in as <span className="text-foreground font-semibold">{PERSONA_LABELS[user.persona]}</span>.
-            The <span className="text-foreground font-semibold">{AGENT_LABEL[agent]}</span> workflow isn’t part of your crew.
-          </p>
-          <div className="pt-2">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Available to you</div>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {allowed.length === 0 ? (
-                <span className="text-sm text-muted-foreground">No agents available — contact admin.</span>
-              ) : (
-                allowed.map((a) => (
-                  <Link
-                    key={a}
-                    to={AGENT_PATH[a]}
-                    className="px-3 py-1.5 rounded-md bg-primary/15 text-primary text-sm font-semibold hover:bg-primary/25 transition"
-                  >
-                    {AGENT_LABEL[a]} →
-                  </Link>
-                ))
-              )}
-            </div>
-          </div>
-          <div className="pt-2">
-            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">← Back to dashboard</Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <RedirectToNearestAgent requested={agent} allowed={allowed} persona={user.persona} />;
   }
 
   return <>{children}</>;
+}
+
+// Sends the user to the closest persona-allowed agent with a brief notice.
+function RedirectToNearestAgent({
+  requested, allowed, persona,
+}: { requested: AgentId; allowed: AgentId[]; persona: Persona }) {
+  const target = allowed[0];
+  const [go, setGo] = useState(false);
+  useEffect(() => {
+    if (!target) return;
+    const t = setTimeout(() => setGo(true), 1400);
+    return () => clearTimeout(t);
+  }, [target]);
+
+  if (go && target) return <Navigate to={AGENT_PATH[target]} replace />;
+
+  return (
+    <div className="max-w-xl mx-auto px-6 py-24">
+      <div className="glass-card p-8 text-center space-y-3">
+        <div className="text-4xl">↪️</div>
+        <h1 className="text-xl font-bold">Redirecting you to your crew</h1>
+        <p className="text-sm text-muted-foreground">
+          <span className="text-foreground font-semibold">{AGENT_LABEL[requested]}</span> isn’t part of the{" "}
+          <span className="text-foreground font-semibold">{PERSONA_LABELS[persona]}</span> persona.
+          {target ? <> Taking you to <span className="text-primary font-semibold">{AGENT_LABEL[target]}</span>…</> : " No agent is available for this persona."}
+        </p>
+        {target && (
+          <Link to={AGENT_PATH[target]} className="inline-block mt-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold">
+            Go now →
+          </Link>
+        )}
+        <div><Link to="/dashboard" className="text-xs text-muted-foreground hover:text-foreground">Cancel, back to dashboard</Link></div>
+      </div>
+    </div>
+  );
 }

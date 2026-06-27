@@ -4,21 +4,26 @@ import { PERSONA_AGENTS } from "@/lib/personaAgents";
 
 
 export function BrandMark({ size = 28 }: { size?: number }) {
+  // Multitude mark: a swarm of agent nodes connected as a mesh.
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" className="animate-ghost" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden className="animate-ghost">
       <defs>
-        <linearGradient id="gh" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="oklch(0.95 0.05 195)" />
+        <radialGradient id="mNode" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="oklch(0.98 0.06 195)" />
           <stop offset="100%" stopColor="oklch(0.72 0.18 220)" />
+        </radialGradient>
+        <linearGradient id="mLink" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="oklch(0.85 0.1 195 / 0.7)" />
+          <stop offset="100%" stopColor="oklch(0.7 0.18 290 / 0.5)" />
         </linearGradient>
       </defs>
-      <path
-        d="M32 4c-12 0-22 9-22 21v32c0 2 2 3 4 2l6-4 6 4c1 .8 3 .8 4 0l6-4 6 4c1 .8 3 .8 4 0l6-4 6 4c2 1 4 0 4-2V25C54 13 44 4 32 4z"
-        fill="url(#gh)"
-      />
-      <circle cx="24" cy="26" r="3.5" fill="#101426" />
-      <circle cx="40" cy="26" r="3.5" fill="#101426" />
-      <path d="M26 38c2 3 10 3 12 0" stroke="#101426" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <g stroke="url(#mLink)" strokeWidth="1.2" fill="none">
+        <path d="M14 20 L32 12 L50 22 L44 44 L20 46 Z" />
+        <path d="M32 12 L44 44 M14 20 L50 22 M20 46 L50 22 M32 32 L14 20 M32 32 L50 22 M32 32 L44 44 M32 32 L20 46 M32 32 L32 12" />
+      </g>
+      {([[14,20,3.5],[32,12,4.5],[50,22,3.5],[44,44,4],[20,46,3.5],[32,32,5.5]] as const).map(([x,y,r],i) => (
+        <circle key={i} cx={x} cy={y} r={r} fill="url(#mNode)" />
+      ))}
     </svg>
   );
 }

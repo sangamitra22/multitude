@@ -38,7 +38,7 @@ export function Header() {
           <span className="glow-text">Multitude</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground transition" activeOptions={{ exact: true }} activeProps={{ className: "text-foreground" }}>Home</Link>
+          {!user && <Link to="/" className="hover:text-foreground transition" activeOptions={{ exact: true }} activeProps={{ className: "text-foreground" }}>Home</Link>}
           {user ? (
             <>
               <Link to="/dashboard" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Dashboard</Link>

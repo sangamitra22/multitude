@@ -3,9 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/docs")({
   head: () => ({
     meta: [
-      { title: "Developer Docs — CasperCrew" },
-      { name: "description", content: "Build on CasperCrew: MCP tool calls, x402 micropayments, CSPR.click signing, CSPR.cloud reads and Odra contract scaffolding." },
-      { property: "og:title", content: "Developer Docs — CasperCrew" },
+      { title: "Developer Docs — Multitude" },
+      { name: "description", content: "Build on Multitude: MCP tool calls, x402 micropayments, CSPR.click signing, CSPR.cloud reads and Odra contract scaffolding." },
+      { property: "og:title", content: "Developer Docs — Multitude" },
       { property: "og:url", content: "/docs" },
     ],
     links: [{ rel: "canonical", href: "/docs" }],
@@ -18,7 +18,7 @@ function Docs() {
     <div className="max-w-5xl mx-auto px-6 py-12 space-y-10">
       <header>
         <h1 className="text-4xl font-bold mb-2">Developer documentation</h1>
-        <p className="text-muted-foreground">Plug into the CasperCrew agent platform. Examples below use the Casper AI Toolkit primitives.</p>
+        <p className="text-muted-foreground">Plug into the Multitude agent platform. Examples below use the Casper AI Toolkit primitives.</p>
       </header>
 
       <Block title="1. Define an agent">

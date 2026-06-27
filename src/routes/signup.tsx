@@ -10,9 +10,9 @@ export const Route = createFileRoute("/signup")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign up — CasperCrew" },
-      { name: "description", content: "Create your CasperCrew prototype account and deploy your agent crew." },
-      { property: "og:title", content: "Sign up — CasperCrew" },
+      { title: "Sign up — Multitude" },
+      { name: "description", content: "Create your Multitude prototype account and deploy your agent crew." },
+      { property: "og:title", content: "Sign up — Multitude" },
       { property: "og:url", content: "/signup" },
     ],
     links: [{ rel: "canonical", href: "/signup" }],
@@ -76,7 +76,7 @@ function SignUp() {
     return (
       <div className="max-w-xl mx-auto px-6 py-24 text-center">
         <h1 className="text-3xl font-bold mb-3">Access restricted</h1>
-        <p className="text-muted-foreground">CasperCrew is not available in your selected jurisdiction. This prototype enforces a basic sanctions/jurisdiction screen.</p>
+        <p className="text-muted-foreground">Multitude is not available in your selected jurisdiction. This prototype enforces a basic sanctions/jurisdiction screen.</p>
       </div>
     );
   }

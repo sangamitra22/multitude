@@ -4,10 +4,10 @@ import { PERSONA_LABELS, type Persona } from "@/lib/auth";
 export const Route = createFileRoute("/personas")({
   head: () => ({
     meta: [
-      { title: "Personas — CasperCrew" },
-      { name: "description", content: "Pick your CasperCrew persona — DeFi investor, RWA operator, DAO manager, compliance officer, or developer." },
-      { property: "og:title", content: "Personas — CasperCrew" },
-      { property: "og:description", content: "Tailor your CasperCrew experience to your role." },
+      { title: "Personas — Multitude" },
+      { name: "description", content: "Pick your Multitude persona — DeFi investor, RWA operator, DAO manager, compliance officer, or developer." },
+      { property: "og:title", content: "Personas — Multitude" },
+      { property: "og:description", content: "Tailor your Multitude experience to your role." },
       { property: "og:url", content: "/personas" },
     ],
     links: [{ rel: "canonical", href: "/personas" }],
@@ -27,7 +27,7 @@ function Personas() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-16">
       <h1 className="text-4xl font-bold mb-3">Pick your persona</h1>
-      <p className="text-muted-foreground mb-10">CasperCrew tailors agents, workflows and dashboard cards to your role.</p>
+      <p className="text-muted-foreground mb-10">Multitude tailors agents, workflows and dashboard cards to your role.</p>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
         {PERSONAS.map((p) => (
           <Link key={p.id} to="/signup" search={{ persona: p.id }} className="glass-card p-6 hover:glow-border transition group">

@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 export const Route = createFileRoute("/wallet")({
   head: () => ({
     meta: [
-      { title: "Wallet — CasperCrew" },
+      { title: "Wallet — Multitude" },
       { name: "description", content: "Wallet operations console: connect, sign, and review on-chain history." },
       { name: "robots", content: "noindex" },
     ],
@@ -145,32 +145,8 @@ function Wallet() {
         </div>
       </div>
 
-      {/* Full history */}
-      <div className="glass-card p-6 overflow-x-auto">
-        <h2 className="font-bold mb-4">Transaction history</h2>
-        <p className="text-xs text-muted-foreground mb-3">Tap any row to inspect signers and the simulated on-chain pipeline.</p>
-        <table className="w-full text-sm">
-          <thead className="text-xs text-muted-foreground uppercase">
-            <tr><th className="text-left py-2">Hash</th><th className="text-left">Action</th><th className="text-left">Agent</th><th className="text-left">Status</th><th className="text-left">Time</th><th></th></tr>
-          </thead>
-          <tbody>
-            {TXS.map((t) => (
-              <tr
-                key={t.hash}
-                onClick={() => setSelectedTx(t)}
-                className="border-t border-border cursor-pointer hover:bg-secondary/40 transition"
-              >
-                <td className="py-2 font-mono text-xs">{t.hash}</td>
-                <td>{t.action}</td>
-                <td className="text-primary">{t.agent}</td>
-                <td><span className={`text-xs px-2 py-0.5 rounded-full ${t.status === "Confirmed" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{t.status}</span></td>
-                <td className="text-muted-foreground text-xs">{t.time}</td>
-                <td className="text-xs text-primary text-right pr-2">Details →</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <FullHistory onSelect={setSelectedTx} />
+
 
       <TxDetailsDrawer tx={selectedTx} onClose={() => setSelectedTx(null)} />
     </div>
@@ -187,7 +163,7 @@ function TxDetailsDrawer({ tx, onClose }: { tx: Tx | null; onClose: () => void }
         { label: "CSPR.click signature", detail: "Signed locally by user wallet 0x8f3a…9c2b (ed25519).", done: true },
         { label: "Broadcast to Casper", detail: "Submitted via CSPR.cloud RPC pool · gossip latency 142ms.", done: true },
         { label: "On-chain inclusion", detail: tx.status === "Confirmed" ? "Included in block #2,481,902 — finalized." : "Awaiting validator quorum (3 of 5).", done: tx.status === "Confirmed" },
-        { label: "Audit log", detail: "Appended to CasperCrew monitoring trail with agent + persona attribution.", done: tx.status === "Confirmed" },
+        { label: "Audit log", detail: "Appended to Multitude monitoring trail with agent + persona attribution.", done: tx.status === "Confirmed" },
       ]
     : [];
 
@@ -257,4 +233,71 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
     </div>
   );
 }
+
+function FullHistory({ onSelect }: { onSelect: (t: Tx) => void }) {
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState<"All" | "Confirmed" | "Pending">("All");
+  const [agent, setAgent] = useState<string>("All");
+
+  const agents = ["All", ...Array.from(new Set(TXS.map((t) => t.agent)))];
+  const filtered = TXS.filter((t) => {
+    if (status !== "All" && t.status !== status) return false;
+    if (agent !== "All" && t.agent !== agent) return false;
+    if (q) {
+      const s = q.toLowerCase();
+      if (!t.hash.toLowerCase().includes(s) && !t.action.toLowerCase().includes(s) && !t.agent.toLowerCase().includes(s)) return false;
+    }
+    return true;
+  });
+
+  return (
+    <div className="glass-card p-6">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div>
+          <h2 className="font-bold">Transaction history</h2>
+          <p className="text-xs text-muted-foreground">Tap any row to inspect signers and the simulated on-chain pipeline.</p>
+        </div>
+        <div className="flex-1" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search hash, action, agent…"
+          className="px-3 py-2 rounded-md bg-input border border-border text-sm w-64"
+        />
+        <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className="px-3 py-2 rounded-md bg-input border border-border text-sm">
+          {["All", "Confirmed", "Pending"].map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={agent} onChange={(e) => setAgent(e.target.value)} className="px-3 py-2 rounded-md bg-input border border-border text-sm">
+          {agents.map((a) => <option key={a} value={a}>{a}</option>)}
+        </select>
+        {(q || status !== "All" || agent !== "All") && (
+          <button onClick={() => { setQ(""); setStatus("All"); setAgent("All"); }} className="text-xs text-primary hover:underline">Clear</button>
+        )}
+      </div>
+      <div className="text-xs text-muted-foreground mb-2">{filtered.length} of {TXS.length} transactions</div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-xs text-muted-foreground uppercase">
+            <tr><th className="text-left py-2">Hash</th><th className="text-left">Action</th><th className="text-left">Agent</th><th className="text-left">Status</th><th className="text-left">Time</th><th></th></tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr><td colSpan={6} className="text-center text-muted-foreground py-8 text-sm">No transactions match these filters.</td></tr>
+            ) : filtered.map((t) => (
+              <tr key={t.hash} onClick={() => onSelect(t)} className="border-t border-border cursor-pointer hover:bg-secondary/40 transition">
+                <td className="py-2 font-mono text-xs">{t.hash}</td>
+                <td>{t.action}</td>
+                <td className="text-primary">{t.agent}</td>
+                <td><span className={`text-xs px-2 py-0.5 rounded-full ${t.status === "Confirmed" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{t.status}</span></td>
+                <td className="text-muted-foreground text-xs">{t.time}</td>
+                <td className="text-xs text-primary text-right pr-2">Details →</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 

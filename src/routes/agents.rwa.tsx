@@ -5,7 +5,7 @@ import { AgentGate } from "@/lib/personaAgents";
 export const Route = createFileRoute("/agents/rwa")({
   head: () => ({
     meta: [
-      { title: "Verus — RWA Oracle | CasperCrew" },
+      { title: "Verus — RWA Oracle | Multitude" },
       { name: "description", content: "Verus ingests off-chain data, scores its risk and posts verified attestations on Casper with provenance." },
       { property: "og:title", content: "Verus — RWA Oracle" },
       { property: "og:url", content: "/agents/rwa" },

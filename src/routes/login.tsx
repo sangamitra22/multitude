@@ -5,9 +5,9 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Login — CasperCrew" },
-      { name: "description", content: "Sign in to your CasperCrew prototype workspace." },
-      { property: "og:title", content: "Login — CasperCrew" },
+      { title: "Login — Multitude" },
+      { name: "description", content: "Sign in to your Multitude prototype workspace." },
+      { property: "og:title", content: "Login — Multitude" },
       { property: "og:url", content: "/login" },
     ],
     links: [{ rel: "canonical", href: "/login" }],

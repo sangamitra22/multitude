@@ -6,7 +6,7 @@ import { AgentGate } from "@/lib/personaAgents";
 export const Route = createFileRoute("/agents/dao")({
   head: () => ({
     meta: [
-      { title: "Quorra — Multi-Agent DAO Governance | CasperCrew" },
+      { title: "Quorra — Multi-Agent DAO Governance | Multitude" },
       { name: "description", content: "Risk, Treasury, Legal and Execution agents debate DAO proposals and recommend a vote — then settle on-chain." },
       { property: "og:title", content: "Quorra — Multi-Agent DAO Governance" },
       { property: "og:url", content: "/agents/dao" },

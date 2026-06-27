@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AGENTS } from "@/lib/mockData";
+import heroImg from "@/assets/multitude-hero.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CasperCrew — Autonomous AI Agents for the Casper Economy" },
-      { name: "description", content: "Meet CasperCrew: friendly autonomous AI agents that run DeFi, RWA, DAO governance and compliance on the Casper blockchain." },
-      { property: "og:title", content: "CasperCrew — Autonomous AI Agents for Casper" },
+      { title: "Multitude — Autonomous AI Agents for the Casper Economy" },
+      { name: "description", content: "Meet Multitude: friendly autonomous AI agents that run DeFi, RWA, DAO governance and compliance on the Casper blockchain." },
+      { property: "og:title", content: "Multitude — Autonomous AI Agents for Casper" },
       { property: "og:description", content: "A friendly crew of autonomous AI agents for the Casper economy." },
       { property: "og:url", content: "/" },
     ],
@@ -23,8 +24,10 @@ function Home() {
   return (
     <>
       {/* Hero */}
-      <div className="hero-bg">
-        <Section className="!py-28 text-center">
+      <div className="hero-bg relative overflow-hidden">
+        <img src={heroImg} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/20 to-background pointer-events-none" />
+        <Section className="!py-28 text-center relative">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-card/50 text-xs text-muted-foreground mb-6">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
             Live prototype · Casper Agentic Buildathon
@@ -33,7 +36,7 @@ function Home() {
             Your friendly crew of <span className="glow-text">autonomous AI agents</span> for the Casper economy.
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
-            CasperCrew puts a team of specialized AI agents to work on DeFi, real-world assets,
+            Multitude puts a team of specialized AI agents to work on DeFi, real-world assets,
             DAO governance, compliance and machine-to-machine commerce — using Casper as the
             trust layer.
           </p>
@@ -165,7 +168,7 @@ function Home() {
       <Section>
         <div className="glass-card p-10">
           <div className="text-sm text-accent font-mono uppercase tracking-wider mb-3">Built for judges</div>
-          <h2 className="text-4xl font-bold mb-6">Why CasperCrew can win.</h2>
+          <h2 className="text-4xl font-bold mb-6">Why Multitude can win.</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
               ["Innovation", "First friendly multi-agent crew that fuses MCP, x402, CSPR.click, CSPR.cloud and Odra into one cohesive product."],

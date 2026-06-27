@@ -1,14 +1,14 @@
-# CasperCrew
+# Multitude
 
 > **Your friendly crew of autonomous AI agents for the Casper economy.**
 
-CasperCrew is a hackathon-ready prototype for the **Casper Agentic Buildathon**. It demonstrates how a coordinated crew of specialized AI agents — anchored to the Casper blockchain — can run DeFi yield routing, RWA oracles, multi-agent DAO governance, privacy-preserving compliance, and machine-to-machine commerce.
+Multitude is a hackathon-ready prototype for the **Casper Agentic Buildathon**. It demonstrates how a coordinated crew of specialized AI agents — anchored to the Casper blockchain — can run DeFi yield routing, RWA oracles, multi-agent DAO governance, privacy-preserving compliance, and machine-to-machine commerce.
 
 ---
 
 ## Overview
 
-Today's AI agents live in opaque silos: no verifiable identity, no shared trust layer, no native way to pay per call or settle on-chain. CasperCrew solves this by giving every agent a Casper-rooted identity, an x402 budget, MCP tools, a CSPR.click signer, and Odra-generated smart contracts to settle on.
+Today's AI agents live in opaque silos: no verifiable identity, no shared trust layer, no native way to pay per call or settle on-chain. Multitude solves this by giving every agent a Casper-rooted identity, an x402 budget, MCP tools, a CSPR.click signer, and Odra-generated smart contracts to settle on.
 
 ## Problem statement
 
@@ -20,7 +20,7 @@ Today's AI agents live in opaque silos: no verifiable identity, no shared trust 
 
 ## Solution
 
-CasperCrew composes specialized agents — **Yieldra**, **Verus**, **Quorra**, **Sentinel**, **Vaulta**, **Forge** — into one platform. Each agent:
+Multitude composes specialized agents — **Yieldra**, **Verus**, **Quorra**, **Sentinel**, **Vaulta**, **Forge** — into one platform. Each agent:
 
 - Holds a Casper-rooted identity.
 - Pays for tool use with **x402** micropayments.
@@ -45,7 +45,7 @@ CasperCrew composes specialized agents — **Yieldra**, **Verus**, **Quorra**, *
 
 ## User personas
 
-| Persona | What CasperCrew gives them |
+| Persona | What Multitude gives them |
 | --- | --- |
 | DeFi Investor | Autonomous yield routing & portfolio optimization |
 | RWA Operator | Verified off-chain data anchored on-chain |
@@ -58,7 +58,7 @@ CasperCrew composes specialized agents — **Yieldra**, **Verus**, **Quorra**, *
 ```
 User
   ↓
-CasperCrew UI (TanStack Start + React)
+Multitude UI (TanStack Start + React)
   ↓
 AI Agent Orchestrator
   ↓

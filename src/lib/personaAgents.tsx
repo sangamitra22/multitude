@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { Link, Navigate } from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
 import { useAuth, PERSONA_LABELS, type Persona } from "@/lib/auth";
 
 export type AgentId = "yield" | "rwa" | "dao" | "compliance";

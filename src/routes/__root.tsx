@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { Header, Footer } from "@/components/Shell";
+import { CasperWalletProvider } from "@/lib/casper/wallet";
 
 function NotFoundComponent() {
   return (
@@ -125,13 +126,15 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-          <Footer />
-        </div>
+        <CasperWalletProvider>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              <Outlet />
+            </main>
+            <Footer />
+          </div>
+        </CasperWalletProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

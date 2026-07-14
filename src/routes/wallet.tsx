@@ -1,22 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { TXS } from "@/lib/mockData";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-
+import { useCasperWallet } from "@/lib/casper/wallet";
+import { NETWORKS, explorerAccountUrl, explorerDeployUrl, type NetworkId } from "@/lib/casper/network";
+import { buildTransferDeployJson } from "@/lib/casper/buildTransfer";
+import { fetchBalance, putDeployRaw, pollDeploy, type DeployPhase } from "@/lib/casper/rpc";
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
     meta: [
       { title: "Wallet — Multitude" },
-      { name: "description", content: "Wallet operations console: connect, sign, and review on-chain history." },
+      { name: "description", content: "Casper wallet console: connect Casper Wallet, sign real deploys on Testnet/Mainnet, and track live RPC status." },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: Wallet,
 });
-
-const MOCK_ADDR = "0x8f3a2c1d9b4e5f6a7c8d9e0f1a2b3c4d5e6f9c2b";
 
 interface SignedTx {
   id: string;
@@ -25,17 +26,54 @@ interface SignedTx {
   memo: string;
   hash: string;
   time: string;
-  status: "Signed" | "Broadcasting" | "Confirmed";
+  phase: DeployPhase;
+  networkId: NetworkId;
+  blockHash?: string;
+  errorMessage?: string;
+}
+
+function shortHash(h: string, l = 8, r = 6) {
+  if (!h) return "";
+  if (h.length <= l + r + 1) return h;
+  return `${h.slice(0, l)}…${h.slice(-r)}`;
+}
+
+function phaseBadge(phase: DeployPhase) {
+  const map: Record<DeployPhase, string> = {
+    signed: "bg-primary/15 text-primary",
+    broadcasting: "bg-warning/15 text-warning",
+    executed: "bg-primary/15 text-primary",
+    finalized: "bg-success/15 text-success",
+    failed: "bg-destructive/15 text-destructive",
+  };
+  return map[phase];
 }
 
 function Wallet() {
   const { user } = useAuth();
-  const [connected, setConnected] = useState(true);
+  const { status, publicKey, network, setNetwork, connect, disconnect, extensionAvailable, error } = useCasperWallet();
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState<SignedTx[]>([]);
-  const [form, setForm] = useState({ to: "casper1q...recipient", amount: "100", memo: "Agent settlement" });
-  const [selectedTx, setSelectedTx] = useState<(typeof TXS)[number] | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
+  const [form, setForm] = useState({ to: "", amount: "2.5", memo: "" });
+  const [selectedTx, setSelectedTx] = useState<SelectableTx | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
+  const connected = status === "connected" && !!publicKey;
+
+  // Refresh balance whenever pk or network changes
+  useEffect(() => {
+    if (!publicKey) { setBalance(null); return; }
+    let cancelled = false;
+    setBalance(null);
+    fetchBalance(network, publicKey)
+      .then((b) => { if (!cancelled) setBalance(b); })
+      .catch(() => { if (!cancelled) setBalance("—"); });
+    return () => { cancelled = true; };
+  }, [publicKey, network]);
+
+  // Clear in-memory signed rows when switching networks (they belong to previous chain)
+  useEffect(() => { setSigned([]); }, [network.id]);
 
   if (!user) {
     return (
@@ -48,24 +86,65 @@ function Wallet() {
 
   async function handleSign(e: React.FormEvent) {
     e.preventDefault();
-    if (!connected) return;
+    if (!connected || !publicKey) return;
+    setFlash(null);
     setSigning(true);
-    const hash = "0x" + Math.random().toString(16).slice(2, 10) + "…" + Math.random().toString(16).slice(2, 6);
     const id = crypto.randomUUID();
-    await new Promise((r) => setTimeout(r, 900));
-    setSigned((s) => [{ id, to: form.to, amount: form.amount, memo: form.memo, hash, time: "just now", status: "Signed" }, ...s]);
-    await new Promise((r) => setTimeout(r, 700));
-    setSigned((s) => s.map((t) => t.id === id ? { ...t, status: "Broadcasting" } : t));
-    await new Promise((r) => setTimeout(r, 900));
-    setSigned((s) => s.map((t) => t.id === id ? { ...t, status: "Confirmed" } : t));
-    setSigning(false);
+    const draft: SignedTx = {
+      id,
+      to: form.to,
+      amount: form.amount,
+      memo: form.memo,
+      hash: "",
+      time: "just now",
+      phase: "signed",
+      networkId: network.id,
+    };
+    try {
+      const deployJson = buildTransferDeployJson({
+        fromPublicKeyHex: publicKey,
+        toPublicKeyHex: form.to.trim(),
+        amountCspr: form.amount,
+        memoId: form.memo,
+        network,
+      });
+      // Ask wallet to sign
+      const signatureHex = await (async () => {
+        const { signDeploy } = useCasperWalletBridge();
+        return signDeploy(deployJson);
+      })();
+      // Attach approval into deploy JSON
+      const signedDeploy = attachApproval(deployJson, publicKey, signatureHex);
+      // Compute the deploy hash before RPC responds (RPC also returns it)
+      const preHash = extractDeployHash(signedDeploy);
+      setSigned((s) => [{ ...draft, hash: preHash, phase: "signed" }, ...s]);
+      // Broadcast
+      const rpcHash = await putDeployRaw(network, signedDeploy);
+      setSigned((s) => s.map((t) => t.id === id ? { ...t, hash: rpcHash, phase: "broadcasting" } : t));
+      // Poll to finalization
+      const final = await pollDeploy(network, rpcHash, (u) => {
+        setSigned((s) => s.map((t) => t.id === id ? { ...t, phase: u.phase, blockHash: u.blockHash, errorMessage: u.errorMessage } : t));
+      });
+      setSigned((s) => s.map((t) => t.id === id ? { ...t, phase: final.phase, blockHash: final.blockHash, errorMessage: final.errorMessage } : t));
+      // Refresh balance in the background
+      fetchBalance(network, publicKey).then(setBalance).catch(() => {});
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Sign / broadcast failed";
+      setSigned((s) => s.map((t) => t.id === id ? { ...t, phase: "failed", errorMessage: msg } : t));
+      setFlash(msg);
+    } finally {
+      setSigning(false);
+    }
   }
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Wallet Operations Console</h1>
-        <p className="text-muted-foreground mt-1">Simulated CSPR.click wallet · signing flows are mocked for the prototype.</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Wallet Operations Console</h1>
+          <p className="text-muted-foreground mt-1">Real Casper Wallet signing · JSON-RPC broadcast via {new URL(network.rpc).host} · live deploy status.</p>
+        </div>
+        <NetworkSwitch value={network.id} onChange={setNetwork} />
       </div>
 
       {/* Connection */}
@@ -74,70 +153,93 @@ function Wallet() {
           <div className="text-xs text-muted-foreground">Wallet status</div>
           <div className="flex items-center gap-2 mt-1">
             <span className={`w-2 h-2 rounded-full ${connected ? "bg-success animate-pulse" : "bg-muted-foreground"}`} />
-            <span className="font-semibold">{connected ? "Connected" : "Disconnected"}</span>
+            <span className="font-semibold">
+              {connected ? "Connected" : status === "connecting" ? "Connecting…" : extensionAvailable ? "Disconnected" : "Casper Wallet not detected"}
+            </span>
           </div>
-          {connected && (
+          {connected && publicKey && (
             <div className="mt-3">
-              <div className="text-xs text-muted-foreground">Address</div>
-              <div className="font-mono text-sm break-all">{MOCK_ADDR}</div>
-              <div className="mt-2 grid grid-cols-3 gap-3 text-sm">
-                <div><div className="text-xs text-muted-foreground">Balance</div><div className="font-semibold">12,481 CSPR</div></div>
-                <div><div className="text-xs text-muted-foreground">Network</div><div className="font-semibold">Casper Mainnet</div></div>
-                <div><div className="text-xs text-muted-foreground">Nonce</div><div className="font-semibold">217</div></div>
+              <div className="text-xs text-muted-foreground">Active public key</div>
+              <div className="font-mono text-sm break-all">
+                <a href={explorerAccountUrl(network, publicKey)} target="_blank" rel="noreferrer" className="hover:text-primary">{publicKey}</a>
               </div>
+              <div className="mt-2 grid grid-cols-3 gap-3 text-sm">
+                <div><div className="text-xs text-muted-foreground">Balance</div><div className="font-semibold">{balance ?? "…"} CSPR</div></div>
+                <div><div className="text-xs text-muted-foreground">Network</div><div className="font-semibold">{network.label}</div></div>
+                <div><div className="text-xs text-muted-foreground">RPC</div><div className="font-semibold truncate" title={network.rpc}>{new URL(network.rpc).host}</div></div>
+              </div>
+              {network.id === "casper-test" && network.faucet && (
+                <a href={network.faucet} target="_blank" rel="noreferrer" className="text-xs text-primary mt-2 inline-block hover:underline">Need Testnet CSPR? Open faucet →</a>
+              )}
             </div>
           )}
+          {!extensionAvailable && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Install the <a href="https://www.casperwallet.io/" target="_blank" rel="noreferrer" className="text-primary hover:underline">Casper Wallet</a> browser extension to sign real deploys.
+            </p>
+          )}
+          {error && <p className="text-xs text-destructive mt-2">{error}</p>}
         </div>
         <button
-          onClick={() => setConnected((c) => !c)}
-          className={`px-5 py-2.5 rounded-md font-semibold transition ${connected ? "border border-border hover:bg-secondary" : "bg-primary text-primary-foreground hover:opacity-90"}`}
+          onClick={() => (connected ? disconnect() : connect())}
+          disabled={!extensionAvailable && !connected}
+          className={`px-5 py-2.5 rounded-md font-semibold transition disabled:opacity-50 ${connected ? "border border-border hover:bg-secondary" : "bg-primary text-primary-foreground hover:opacity-90"}`}
         >
-          {connected ? "Disconnect" : "Connect wallet"}
+          {connected ? "Disconnect" : "Connect Casper Wallet"}
         </button>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Sign tx */}
         <form onSubmit={handleSign} className="glass-card p-6 space-y-4">
-          <h2 className="font-bold">Sign a transaction</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold">Sign & broadcast a transfer</h2>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-success/15 text-success">LIVE · {network.label}</span>
+          </div>
           <label className="block">
-            <span className="block text-xs text-muted-foreground mb-1">Recipient</span>
-            <input value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} className="w-full px-3 py-2 rounded-md bg-input border border-border text-sm font-mono" />
+            <span className="block text-xs text-muted-foreground mb-1">Recipient public key (hex)</span>
+            <input required value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} placeholder="0202…" className="w-full px-3 py-2 rounded-md bg-input border border-border text-sm font-mono" />
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="block text-xs text-muted-foreground mb-1">Amount (CSPR)</span>
-              <input value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="w-full px-3 py-2 rounded-md bg-input border border-border text-sm" />
+              <span className="block text-xs text-muted-foreground mb-1">Amount (CSPR, min 2.5)</span>
+              <input required value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="w-full px-3 py-2 rounded-md bg-input border border-border text-sm" />
             </label>
             <label className="block">
-              <span className="block text-xs text-muted-foreground mb-1">Memo</span>
-              <input value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })} className="w-full px-3 py-2 rounded-md bg-input border border-border text-sm" />
+              <span className="block text-xs text-muted-foreground mb-1">Transfer id (optional, numeric)</span>
+              <input value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })} placeholder="auto" className="w-full px-3 py-2 rounded-md bg-input border border-border text-sm" />
             </label>
           </div>
           <button
             disabled={!connected || signing}
             className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition disabled:opacity-50"
           >
-            {signing ? "Signing…" : connected ? "Sign & broadcast" : "Connect wallet to sign"}
+            {signing ? "Signing & broadcasting…" : connected ? `Sign & broadcast on ${network.label}` : "Connect wallet to sign"}
           </button>
-          <p className="text-xs text-muted-foreground">Signature simulated client-side via CSPR.click skill mock. No real funds move.</p>
+          {flash && <p className="text-xs text-destructive">{flash}</p>}
+          <p className="text-xs text-muted-foreground">
+            Payment: 0.1 CSPR native transfer fee. Deploy is built with casper-js-sdk, signed by your Casper Wallet, broadcast via <span className="font-mono">account_put_deploy</span>, and polled with <span className="font-mono">info_get_deploy</span>.
+          </p>
         </form>
 
         {/* Signed history */}
         <div className="glass-card p-6">
-          <h2 className="font-bold mb-4">Signed transactions</h2>
+          <h2 className="font-bold mb-4">Signed transactions ({network.label})</h2>
           {signed.length === 0 ? (
-            <div className="text-sm text-muted-foreground py-8 text-center">No signed transactions yet. Try the form on the left.</div>
+            <div className="text-sm text-muted-foreground py-8 text-center">No signed transactions this session. Try the form on the left.</div>
           ) : (
             <ul className="space-y-3">
               {signed.map((t) => (
-                <li key={t.id} className="p-3 rounded-lg bg-secondary/40 text-sm">
+                <li key={t.id} className="p-3 rounded-lg bg-secondary/40 text-sm cursor-pointer hover:bg-secondary/60" onClick={() => setSelectedTx({ kind: "live", tx: t })}>
                   <div className="flex justify-between gap-2">
-                    <span className="font-mono text-xs">{t.hash}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${t.status === "Confirmed" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{t.status}</span>
+                    <span className="font-mono text-xs">{t.hash ? shortHash(t.hash) : "pending hash…"}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${phaseBadge(t.phase)}`}>{t.phase}</span>
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">{t.amount} CSPR → <span className="font-mono">{t.to}</span></div>
-                  <div className="text-xs text-muted-foreground">"{t.memo}" · {t.time}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{t.amount} CSPR → <span className="font-mono">{shortHash(t.to, 6, 6)}</span></div>
+                  <div className="text-xs text-muted-foreground">{t.memo ? `"${t.memo}" · ` : ""}{t.time}</div>
+                  {t.hash && (
+                    <a href={explorerDeployUrl(network, t.hash)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-primary hover:underline">View on {network.label} explorer →</a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -145,83 +247,157 @@ function Wallet() {
         </div>
       </div>
 
-      <FullHistory onSelect={setSelectedTx} />
+      <FullHistory onSelect={(t) => setSelectedTx({ kind: "demo", tx: t })} />
 
+      <TxDetailsDrawer sel={selectedTx} onClose={() => setSelectedTx(null)} />
+    </div>
+  );
+}
 
-      <TxDetailsDrawer tx={selectedTx} onClose={() => setSelectedTx(null)} />
+// Small bridge so handleSign can call the hook value captured at render.
+// We can't invoke hooks inside handlers, so re-read via a helper hook wrapper.
+function useCasperWalletBridge() {
+  return useCasperWallet();
+}
+
+/* Attach an approval + recompute hashes.
+   Casper Wallet returns a signatureHex whose first byte encodes the algorithm.
+   We just push the { signer, signature } pair into `approvals` — the node
+   validates the body_hash / deploy_hash against the header we built. */
+function attachApproval(deployJson: object, signerHex: string, signatureHex: string): object {
+  const j = deployJson as { approvals?: Array<{ signer: string; signature: string }> };
+  const approvals = Array.isArray(j.approvals) ? [...j.approvals] : [];
+  approvals.push({ signer: signerHex, signature: signatureHex });
+  return { ...j, approvals };
+}
+
+function extractDeployHash(deployJson: object): string {
+  const j = deployJson as { hash?: string };
+  return j.hash ?? "";
+}
+
+function NetworkSwitch({ value, onChange }: { value: NetworkId; onChange: (id: NetworkId) => void }) {
+  return (
+    <div className="inline-flex glass-card p-1 rounded-lg text-sm">
+      {(Object.keys(NETWORKS) as NetworkId[]).map((id) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => onChange(id)}
+          className={`px-4 py-1.5 rounded-md transition ${value === id ? "bg-primary text-primary-foreground font-semibold" : "hover:bg-secondary/60 text-muted-foreground"}`}
+        >
+          {NETWORKS[id].label}
+        </button>
+      ))}
     </div>
   );
 }
 
 type Tx = (typeof TXS)[number];
+type SelectableTx = { kind: "live"; tx: SignedTx } | { kind: "demo"; tx: Tx };
 
-function TxDetailsDrawer({ tx, onClose }: { tx: Tx | null; onClose: () => void }) {
-  const steps: { label: string; detail: string; done: boolean }[] = tx
+function TxDetailsDrawer({ sel, onClose }: { sel: SelectableTx | null; onClose: () => void }) {
+  const { network } = useCasperWallet();
+  const live = sel?.kind === "live" ? sel.tx : null;
+  const demo = sel?.kind === "demo" ? sel.tx : null;
+
+  const steps: { label: string; detail: string; state: "done" | "active" | "pending" | "failed" }[] = live
     ? [
-        { label: "Intent built", detail: `Agent ${tx.agent} composed the call from MCP context.`, done: true },
-        { label: "x402 budget reserved", detail: "0.0042 CSPR earmarked for downstream MCP + CSPR.cloud calls.", done: true },
-        { label: "CSPR.click signature", detail: "Signed locally by user wallet 0x8f3a…9c2b (ed25519).", done: true },
-        { label: "Broadcast to Casper", detail: "Submitted via CSPR.cloud RPC pool · gossip latency 142ms.", done: true },
-        { label: "On-chain inclusion", detail: tx.status === "Confirmed" ? "Included in block #2,481,902 — finalized." : "Awaiting validator quorum (3 of 5).", done: tx.status === "Confirmed" },
-        { label: "Audit log", detail: "Appended to Multitude monitoring trail with agent + persona attribution.", done: tx.status === "Confirmed" },
+        { label: "Deploy built", detail: `Native transfer for ${live.amount} CSPR built with casper-js-sdk against ${network.chainName}.`, state: "done" },
+        { label: "Wallet signature", detail: "Signed locally by your Casper Wallet extension (ed25519 / secp256k1 per key).", state: live.phase === "signed" || live.hash ? "done" : "pending" },
+        { label: "Broadcast (account_put_deploy)", detail: live.hash ? `Deploy hash ${shortHash(live.hash)} submitted to ${new URL(network.rpc).host}.` : "Submitting to RPC…", state: live.phase === "broadcasting" ? "active" : ["executed", "finalized", "failed"].includes(live.phase) ? "done" : "pending" },
+        { label: "Executed", detail: live.blockHash ? `Included in block ${shortHash(live.blockHash)}.` : "Awaiting validator inclusion…", state: live.phase === "executed" ? "active" : ["finalized"].includes(live.phase) ? "done" : live.phase === "failed" ? "failed" : "pending" },
+        { label: "Finalized", detail: live.phase === "finalized" ? "Confirmed on Casper — irreversible." : live.phase === "failed" ? live.errorMessage ?? "Execution failed" : "Waiting for finalization…", state: live.phase === "finalized" ? "done" : live.phase === "failed" ? "failed" : "pending" },
+      ]
+    : demo
+    ? [
+        { label: "Intent built", detail: `Agent ${demo.agent} composed the call from MCP context.`, state: "done" },
+        { label: "x402 budget reserved", detail: "0.0042 CSPR earmarked for downstream MCP + CSPR.cloud calls.", state: "done" },
+        { label: "CSPR.click signature", detail: "Signed locally by user wallet 0x8f3a…9c2b.", state: "done" },
+        { label: "Broadcast to Casper", detail: "Submitted via CSPR.cloud RPC pool.", state: "done" },
+        { label: "On-chain inclusion", detail: demo.status === "Confirmed" ? "Included in block #2,481,902 — finalized." : "Awaiting validator quorum.", state: demo.status === "Confirmed" ? "done" : "active" },
+        { label: "Audit log", detail: "Appended to Multitude monitoring trail.", state: demo.status === "Confirmed" ? "done" : "pending" },
       ]
     : [];
 
   return (
-    <Sheet open={!!tx} onOpenChange={(o) => !o && onClose()}>
+    <Sheet open={!!sel} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        {tx && (
+        {live && (
           <>
             <SheetHeader>
-              <SheetTitle className="font-mono text-base">{tx.hash}</SheetTitle>
-              <SheetDescription>{tx.action}</SheetDescription>
+              <SheetTitle className="font-mono text-base">{live.hash ? shortHash(live.hash) : "pending hash"}</SheetTitle>
+              <SheetDescription>Native transfer · {live.amount} CSPR on {network.label}</SheetDescription>
             </SheetHeader>
-
             <div className="mt-6 space-y-5 text-sm">
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Status" value={
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${tx.status === "Confirmed" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{tx.status}</span>
-                } />
-                <Field label="Submitted" value={tx.time} />
-                <Field label="Initiating agent" value={<span className="text-primary">{tx.agent}</span>} />
+                <Field label="Phase" value={<span className={`text-xs px-2 py-0.5 rounded-full ${phaseBadge(live.phase)}`}>{live.phase}</span>} />
+                <Field label="Network" value={`${network.label} (${network.chainName})`} />
+                <Field label="Submitted" value={live.time} />
+                <Field label="Block" value={live.blockHash ? shortHash(live.blockHash) : "pending"} />
+                <Field label="Amount" value={`${live.amount} CSPR`} />
+                <Field label="Payment" value="0.1 CSPR" />
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Recipient</div>
+                <div className="p-3 rounded-lg bg-secondary/40 font-mono text-xs break-all">{live.to}</div>
+              </div>
+              {live.hash && (
+                <a href={explorerDeployUrl(network, live.hash)} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Open on {network.label} explorer →</a>
+              )}
+              <StepTimeline steps={steps} />
+              {live.errorMessage && <p className="text-xs text-destructive">{live.errorMessage}</p>}
+            </div>
+          </>
+        )}
+        {demo && (
+          <>
+            <SheetHeader>
+              <SheetTitle className="font-mono text-base">{demo.hash}</SheetTitle>
+              <SheetDescription>{demo.action} · demo record</SheetDescription>
+            </SheetHeader>
+            <div className="mt-6 space-y-5 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Status" value={<span className={`text-xs px-2 py-0.5 rounded-full ${demo.status === "Confirmed" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{demo.status}</span>} />
+                <Field label="Agent" value={<span className="text-primary">{demo.agent}</span>} />
+                <Field label="Submitted" value={demo.time} />
                 <Field label="Network" value="Casper Mainnet" />
-                <Field label="Gas (mock)" value="0.18 CSPR" />
-                <Field label="Block" value={tx.status === "Confirmed" ? "#2,481,902" : "pending"} />
               </div>
-
-              <div>
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Signed by</div>
-                <div className="p-3 rounded-lg bg-secondary/40 space-y-1">
-                  <div className="flex justify-between"><span className="text-muted-foreground">User wallet</span><span className="font-mono text-xs">0x8f3a…9c2b</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Agent key</span><span className="font-mono text-xs">agent:{tx.agent.toLowerCase()}#01</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Signer skill</span><span>CSPR.click</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Scheme</span><span>ed25519</span></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Simulated on-chain pipeline</div>
-                <ol className="space-y-3">
-                  {steps.map((s, i) => (
-                    <li key={s.label} className="flex gap-3">
-                      <div className={`mt-0.5 w-6 h-6 rounded-full grid place-items-center text-xs font-bold shrink-0 ${s.done ? "bg-success/20 text-success" : "bg-warning/20 text-warning"}`}>
-                        {s.done ? "✓" : i + 1}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-semibold">{s.label}</div>
-                        <div className="text-xs text-muted-foreground">{s.detail}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-
-              <p className="text-xs text-muted-foreground">Mock data for prototype demo. No real funds move on Casper.</p>
+              <StepTimeline steps={steps} />
+              <p className="text-xs text-muted-foreground">Demo data · illustrative only. Use the sign form above for real deploys on {network.label}.</p>
             </div>
           </>
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+function StepTimeline({ steps }: { steps: { label: string; detail: string; state: "done" | "active" | "pending" | "failed" }[] }) {
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Pipeline</div>
+      <ol className="space-y-3">
+        {steps.map((s, i) => {
+          const badge =
+            s.state === "done" ? "bg-success/20 text-success" :
+            s.state === "active" ? "bg-warning/20 text-warning animate-pulse" :
+            s.state === "failed" ? "bg-destructive/20 text-destructive" :
+            "bg-muted text-muted-foreground";
+          return (
+            <li key={s.label} className="flex gap-3">
+              <div className={`mt-0.5 w-6 h-6 rounded-full grid place-items-center text-xs font-bold shrink-0 ${badge}`}>
+                {s.state === "done" ? "✓" : s.state === "failed" ? "!" : i + 1}
+              </div>
+              <div className="min-w-0">
+                <div className="font-semibold">{s.label}</div>
+                <div className="text-xs text-muted-foreground">{s.detail}</div>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 
@@ -238,7 +414,6 @@ function FullHistory({ onSelect }: { onSelect: (t: Tx) => void }) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"All" | "Confirmed" | "Pending">("All");
   const [agent, setAgent] = useState<string>("All");
-
   const agents = ["All", ...Array.from(new Set(TXS.map((t) => t.agent)))];
   const filtered = TXS.filter((t) => {
     if (status !== "All" && t.status !== status) return false;
@@ -255,15 +430,10 @@ function FullHistory({ onSelect }: { onSelect: (t: Tx) => void }) {
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div>
           <h2 className="font-bold">Transaction history</h2>
-          <p className="text-xs text-muted-foreground">Tap any row to inspect signers and the simulated on-chain pipeline.</p>
+          <p className="text-xs text-muted-foreground">Demo data · illustrative agent workflow history. Live deploys appear in the section above.</p>
         </div>
         <div className="flex-1" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search hash, action, agent…"
-          className="px-3 py-2 rounded-md bg-input border border-border text-sm w-64"
-        />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search hash, action, agent…" className="px-3 py-2 rounded-md bg-input border border-border text-sm w-64" />
         <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className="px-3 py-2 rounded-md bg-input border border-border text-sm">
           {["All", "Confirmed", "Pending"].map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
@@ -274,7 +444,7 @@ function FullHistory({ onSelect }: { onSelect: (t: Tx) => void }) {
           <button onClick={() => { setQ(""); setStatus("All"); setAgent("All"); }} className="text-xs text-primary hover:underline">Clear</button>
         )}
       </div>
-      <div className="text-xs text-muted-foreground mb-2">{filtered.length} of {TXS.length} transactions</div>
+      <div className="text-xs text-muted-foreground mb-2">{filtered.length} of {TXS.length} demo transactions</div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground uppercase">
@@ -299,5 +469,3 @@ function FullHistory({ onSelect }: { onSelect: (t: Tx) => void }) {
     </div>
   );
 }
-
-

@@ -161,3 +161,27 @@ Place them under `docs/screenshots/` (folder is created on first commit).
 ## License
 
 MIT — for hackathon and demo purposes.
+
+## Real Casper integration (Wallet Operations Console)
+
+`/wallet` is wired to real Casper. Native transfers are built with `casper-js-sdk`, signed locally by your **Casper Wallet** browser extension, broadcast via `account_put_deploy`, and polled with `info_get_deploy` until `Executed → Finalized`.
+
+**Setup**
+1. Install the [Casper Wallet](https://www.casperwallet.io/) extension and create/import a key.
+2. On Testnet, grab CSPR from the [faucet](https://testnet.cspr.live/tools/faucet).
+3. Open `/wallet`, pick **Testnet** or **Mainnet** (segmented control, persisted to `localStorage`), and click **Connect Casper Wallet**.
+4. Fill the recipient public key and amount, then **Sign & broadcast**.
+
+**Environment variables** (all optional — sensible public defaults ship in-repo, see `.env.example`)
+
+| Var | Default | Purpose |
+|---|---|---|
+| `VITE_CASPER_TESTNET_RPC` | `https://node.testnet.cspr.cloud/rpc` | Testnet JSON-RPC endpoint |
+| `VITE_CASPER_MAINNET_RPC` | `https://node.cspr.cloud/rpc` | Mainnet JSON-RPC endpoint |
+| `VITE_CASPER_TESTNET_EXPLORER` | `https://testnet.cspr.live` | Testnet explorer base URL |
+| `VITE_CASPER_MAINNET_EXPLORER` | `https://cspr.live` | Mainnet explorer base URL |
+
+**Still simulated** (called out in the UI):
+- Agent attestation JSON on `/agents/*` — needs Odra contracts deployed to Testnet.
+- x402 micropayment metering — needs Lovable Cloud + agent-key backend.
+- Legacy transaction rows in `/wallet` history — labeled *demo data*.

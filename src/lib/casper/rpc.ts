@@ -9,7 +9,6 @@ export async function fetchBalance(net: NetworkConfig, publicKeyHex: string): Pr
   const c = client(net);
   const pk = PublicKey.fromHex(publicKeyHex);
   const res = await c.queryLatestBalance(PurseIdentifier.fromPublicKey(pk));
-  // motes → CSPR (1 CSPR = 1e9 motes)
   const motes = BigInt(res.balance.toString());
   const cspr = Number(motes) / 1_000_000_000;
   return cspr.toLocaleString(undefined, { maximumFractionDigits: 4 });
@@ -19,7 +18,7 @@ export async function putDeployRaw(net: NetworkConfig, deployJson: object): Prom
   const deploy = Deploy.fromJSON({ deploy: deployJson });
   const c = client(net);
   const res = await c.putDeploy(deploy);
-  return res.deployHash;
+  return String(res.deployHash);
 }
 
 export type DeployPhase = "signed" | "broadcasting" | "executed" | "finalized" | "failed";
@@ -40,20 +39,18 @@ export async function pollDeploy(
   const timeout = opts.timeoutMs ?? 120_000;
   const c = client(net);
   const start = Date.now();
-  let lastPhase: DeployPhase = "broadcasting";
   onUpdate({ phase: "broadcasting" });
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
     if (Date.now() - start > timeout) {
-      const s: DeployStatus = { phase: lastPhase };
-      return s;
+      return { phase: "broadcasting" };
     }
     try {
       const res = await c.getDeploy(hash);
       const exec = res.executionInfo;
       if (exec) {
-        const blockHash = exec.blockHash;
+        const blockHash = exec.blockHash ? String(exec.blockHash) : undefined;
         const execResult = exec.executionResult;
         if (execResult) {
           const errorMessage = execResult.errorMessage;
@@ -62,18 +59,14 @@ export async function pollDeploy(
             onUpdate(s);
             return s;
           }
-          if (lastPhase !== "executed" && lastPhase !== "finalized") {
-            lastPhase = "executed";
-            onUpdate({ phase: "executed", blockHash });
-          }
-          // Assume finalization after next tick — Casper deploys included in block are effectively final.
+          onUpdate({ phase: "executed", blockHash });
           const s: DeployStatus = { phase: "finalized", blockHash };
           onUpdate(s);
           return s;
         }
       }
     } catch {
-      // not yet propagated / mempool
+      /* not yet propagated */
     }
     await new Promise((r) => setTimeout(r, interval));
   }

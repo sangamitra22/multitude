@@ -2,6 +2,7 @@ import {
   Deploy,
   DeployHeader,
   ExecutableDeployItem,
+  TransferDeployItem,
   PublicKey,
   Timestamp,
   Duration,
@@ -25,7 +26,10 @@ export function buildTransferDeployJson(args: BuildTransferArgs): object {
   const amountMotes = BigInt(Math.floor(Number(args.amountCspr) * 1_000_000_000)).toString();
   const id = args.memoId && /^\d+$/.test(args.memoId) ? args.memoId : String(Date.now() % 1_000_000_000);
 
-  const session = ExecutableDeployItem.newTransfer(amountMotes, to, undefined, id);
+  const transfer = TransferDeployItem.newTransfer(amountMotes, to, undefined, id);
+  const session = new ExecutableDeployItem();
+  session.transfer = transfer;
+
   const payment = ExecutableDeployItem.standardPayment(NATIVE_TRANSFER_PAYMENT);
 
   const header = new DeployHeader(
@@ -33,10 +37,11 @@ export function buildTransferDeployJson(args: BuildTransferArgs): object {
     [],
     1,
     new Timestamp(new Date()),
-    new Duration(30 * 60 * 1000), // 30 min TTL
+    new Duration(30 * 60 * 1000),
     from,
   );
 
   const deploy = Deploy.makeDeploy(header, payment, session);
-  return Deploy.toJSON(deploy);
+  const json = Deploy.toJSON(deploy) as unknown;
+  return (json as { deploy: object }).deploy ?? (json as object);
 }

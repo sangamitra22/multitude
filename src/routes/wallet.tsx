@@ -51,7 +51,7 @@ function phaseBadge(phase: DeployPhase) {
 
 function Wallet() {
   const { user } = useAuth();
-  const { status, publicKey, network, setNetwork, connect, disconnect, extensionAvailable, error } = useCasperWallet();
+  const { status, publicKey, network, setNetwork, connect, disconnect, extensionAvailable, error, signDeploy } = useCasperWallet();
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState<SignedTx[]>([]);
   const [balance, setBalance] = useState<string | null>(null);
@@ -109,10 +109,7 @@ function Wallet() {
         network,
       });
       // Ask wallet to sign
-      const signatureHex = await (async () => {
-        const { signDeploy } = useCasperWalletBridge();
-        return signDeploy(deployJson);
-      })();
+      const signatureHex = await signDeploy(deployJson);
       // Attach approval into deploy JSON
       const signedDeploy = attachApproval(deployJson, publicKey, signatureHex);
       // Compute the deploy hash before RPC responds (RPC also returns it)
@@ -252,12 +249,6 @@ function Wallet() {
       <TxDetailsDrawer sel={selectedTx} onClose={() => setSelectedTx(null)} />
     </div>
   );
-}
-
-// Small bridge so handleSign can call the hook value captured at render.
-// We can't invoke hooks inside handlers, so re-read via a helper hook wrapper.
-function useCasperWalletBridge() {
-  return useCasperWallet();
 }
 
 /* Attach an approval + recompute hashes.

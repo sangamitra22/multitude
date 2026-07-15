@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AgentGate } from "@/lib/personaAgents";
+import { AttestationPanel } from "@/components/AttestationPanel";
 
 
 export const Route = createFileRoute("/agents/compliance")({
@@ -27,6 +28,10 @@ function Compliance() {
         <h1 className="text-4xl font-bold mb-2">AI-driven KYC with zero-knowledge attestations</h1>
         <p className="text-muted-foreground">Prove compliance without revealing personal data. Casper holds the attestation; you keep the secrets.</p>
       </header>
+
+      <AttestationPanel agent="sentinel" memoPrefix="sentinel.kyc" />
+
+
 
       <div className="glass-card p-6">
         <div className="flex flex-wrap gap-2 mb-6">

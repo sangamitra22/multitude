@@ -48,7 +48,9 @@ export function Header() {
                 const path = first === "rwa" ? "/agents/rwa" : first === "dao" ? "/agents/dao" : first === "compliance" ? "/agents/compliance" : "/agents/yield";
                 return <Link to={path} className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Agents</Link>;
               })()}
+              <Link to="/settings/contracts" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Settings</Link>
             </>
+
 
           ) : (
             <>

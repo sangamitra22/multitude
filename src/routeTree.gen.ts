@@ -18,6 +18,7 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ArchitectureRouteImport } from './routes/architecture'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsContractsRouteImport } from './routes/settings.contracts'
 import { Route as AgentsYieldRouteImport } from './routes/agents.yield'
 import { Route as AgentsRwaRouteImport } from './routes/agents.rwa'
 import { Route as AgentsDaoRouteImport } from './routes/agents.dao'
@@ -68,6 +69,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsContractsRoute = SettingsContractsRouteImport.update({
+  id: '/settings/contracts',
+  path: '/settings/contracts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsYieldRoute = AgentsYieldRouteImport.update({
   id: '/agents/yield',
   path: '/agents/yield',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
   '/agents/yield': typeof AgentsYieldRoute
+  '/settings/contracts': typeof SettingsContractsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
   '/agents/yield': typeof AgentsYieldRoute
+  '/settings/contracts': typeof SettingsContractsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/agents/dao': typeof AgentsDaoRoute
   '/agents/rwa': typeof AgentsRwaRoute
   '/agents/yield': typeof AgentsYieldRoute
+  '/settings/contracts': typeof SettingsContractsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/agents/dao'
     | '/agents/rwa'
     | '/agents/yield'
+    | '/settings/contracts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/agents/dao'
     | '/agents/rwa'
     | '/agents/yield'
+    | '/settings/contracts'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/agents/dao'
     | '/agents/rwa'
     | '/agents/yield'
+    | '/settings/contracts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   AgentsDaoRoute: typeof AgentsDaoRoute
   AgentsRwaRoute: typeof AgentsRwaRoute
   AgentsYieldRoute: typeof AgentsYieldRoute
+  SettingsContractsRoute: typeof SettingsContractsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/contracts': {
+      id: '/settings/contracts'
+      path: '/settings/contracts'
+      fullPath: '/settings/contracts'
+      preLoaderRoute: typeof SettingsContractsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agents/yield': {
       id: '/agents/yield'
       path: '/agents/yield'
@@ -309,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsDaoRoute: AgentsDaoRoute,
   AgentsRwaRoute: AgentsRwaRoute,
   AgentsYieldRoute: AgentsYieldRoute,
+  SettingsContractsRoute: SettingsContractsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

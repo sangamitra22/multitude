@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AgentGate } from "@/lib/personaAgents";
+import { AttestationPanel } from "@/components/AttestationPanel";
 
 
 export const Route = createFileRoute("/agents/rwa")({
@@ -23,6 +24,10 @@ function RWA() {
         <h1 className="text-4xl font-bold mb-2">RWA oracle with verifiable identity</h1>
         <p className="text-muted-foreground">Verus brings off-chain reality on-chain — with cryptographic provenance and a reputation score.</p>
       </header>
+
+      <AttestationPanel agent="verus" memoPrefix="verus.attest" />
+
+
 
       <div className="grid md:grid-cols-4 gap-4">
         {[

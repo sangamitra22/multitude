@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AgentGate } from "@/lib/personaAgents";
+import { AttestationPanel } from "@/components/AttestationPanel";
 
 
 export const Route = createFileRoute("/agents/dao")({
@@ -32,6 +33,10 @@ function DAO() {
         <h1 className="text-4xl font-bold mb-2">Multi-agent DAO governance</h1>
         <p className="text-muted-foreground">Four specialized agents review every proposal. You stay in the loop with a clear recommendation.</p>
       </header>
+
+      <AttestationPanel agent="quorra" memoPrefix="quorra.vote" />
+
+
 
       <div className="glass-card p-6">
         <div className="flex flex-wrap justify-between gap-3 mb-4">

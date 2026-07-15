@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { YIELD_OPPS } from "@/lib/mockData";
 import { AgentGate } from "@/lib/personaAgents";
+import { AttestationPanel } from "@/components/AttestationPanel";
 
 
 export const Route = createFileRoute("/agents/yield")({
@@ -34,6 +35,10 @@ function Yield() {
         <h1 className="text-4xl font-bold mb-2">Autonomous yield-routing workflow</h1>
         <p className="text-muted-foreground">Yieldra evaluates Casper DeFi opportunities and routes capital with risk-aware logic.</p>
       </header>
+
+      <AttestationPanel agent="yieldRouter" memoPrefix="yieldra.route" />
+
+
 
       <div className="glass-card p-6 grid md:grid-cols-3 gap-6">
         <label className="block">

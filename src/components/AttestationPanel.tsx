@@ -207,3 +207,12 @@ function short(h: string) {
   if (h.length <= 16) return h;
   return `${h.slice(0, 8)}…${h.slice(-6)}`;
 }
+
+function timeAgo(ts: number) {
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  return `${h}h ago`;
+}

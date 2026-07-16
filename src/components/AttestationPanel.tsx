@@ -32,6 +32,52 @@ export function AttestationPanel({ agent, memoPrefix }: Props) {
   const x402 = getContractsConfig(network.id).x402;
   const amountCspr = (Number(BigInt(x402.paymentMotes)) / 1_000_000_000).toString();
 
+  // Re-poll a single pending attestation and mirror its status back into storage.
+  const repollOne = useCallback((rec: AttestationRecord) => {
+    if (!rec.deployHash || pollingRef.current.has(rec.id)) return;
+    pollingRef.current.add(rec.id);
+    pollDeploy(network, rec.deployHash, (u) => {
+      if (u.phase === "finalized") updateAttestation(rec.id, { status: "finalized", blockHash: u.blockHash, errorMessage: undefined });
+      else if (u.phase === "failed") updateAttestation(rec.id, { status: "failed", errorMessage: u.errorMessage });
+      else if (u.phase === "timeout") updateAttestation(rec.id, { errorMessage: u.errorMessage }); // stays pending
+    }, { timeoutMs: 60_000 })
+      .catch(() => {})
+      .finally(() => { pollingRef.current.delete(rec.id); });
+  }, [network]);
+
+  // Auto re-poll pending records on mount / network switch / new records arriving.
+  useEffect(() => {
+    const pendings = records.filter((r) => r.status === "pending" && r.deployHash && r.networkId === network.id);
+    pendings.forEach(repollOne);
+  }, [records, network.id, repollOne]);
+
+  async function refreshAttestations() {
+    setRefreshing(true);
+    setFlash(null);
+    try {
+      const current = listAttestations(network.id, agent);
+      // Force fresh receipts for anything not-failed with a hash.
+      await Promise.all(current.filter((r) => !!r.deployHash).map(async (r) => {
+        try {
+          const receipt = await fetchDeployReceipt(network, r.deployHash);
+          if (receipt.errorMessage) {
+            updateAttestation(r.id, { status: "failed", errorMessage: receipt.errorMessage, blockHash: receipt.blockHash });
+          } else if (receipt.blockHash) {
+            updateAttestation(r.id, { status: "finalized", blockHash: receipt.blockHash, errorMessage: undefined });
+          }
+        } catch {
+          // ignore per-record errors; individual polling will retry
+        }
+      }));
+      setLastRefreshed(Date.now());
+    } catch (e) {
+      setFlash(e instanceof Error ? e.message : "Refresh failed");
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+
   async function attest() {
     if (!connected || !publicKey) {
       await connect();

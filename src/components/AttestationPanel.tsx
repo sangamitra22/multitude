@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCasperWallet } from "@/lib/casper/wallet";
 import { agentContractHash, listAttestations, recordAttestation, subscribeAttestations, updateAttestation, type AttestationRecord } from "@/lib/casper/attestation";
 import { getContractsConfig, type AgentKey, AGENT_LABELS } from "@/lib/casper/config";
 import { buildTransferDeployJson } from "@/lib/casper/buildTransfer";
-import { pollDeploy, putDeployRaw } from "@/lib/casper/rpc";
+import { fetchDeployReceipt, pollDeploy, putDeployRaw } from "@/lib/casper/rpc";
 import { explorerDeployUrl } from "@/lib/casper/network";
 
 interface Props {
@@ -18,6 +18,9 @@ export function AttestationPanel({ agent, memoPrefix }: Props) {
   const [records, setRecords] = useState<AttestationRecord[]>(() => listAttestations(network.id, agent));
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<number | null>(null);
+  const pollingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const refresh = () => setRecords(listAttestations(network.id, agent));

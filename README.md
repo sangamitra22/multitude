@@ -138,7 +138,7 @@ Place them under `docs/screenshots/` (folder is created on first commit).
 
 - This is a prototype. Mock authentication is stored in `localStorage`. **Do not** use as-is for production.
 - Restricted-jurisdiction screening is illustrative only.
-- All on-chain interactions shown are mocked — no real funds move.
+- Wallet operations on `/wallet` are **real** on Casper Testnet/Mainnet — treat them accordingly. Agent attestations and x402 meters remain illustrative until Odra contracts land.
 - Not financial, legal, or investment advice.
 - Responsible-AI disclaimer: AI agent recommendations require human review.
 
@@ -153,7 +153,7 @@ Place them under `docs/screenshots/` (folder is created on first commit).
 1. Push this repo to GitHub.
 2. Import the repo in Vercel.
 3. Framework preset: **Other** (Vite). Build command: `bun run build`. Output dir: `.output/public` (TanStack Start default).
-4. No environment variables required.
+4. No environment variables required (public Casper RPC defaults ship in-repo). Override via `VITE_CASPER_*` if you want a private endpoint.
 5. Deploy.
 
 > The project is also fully compatible with Cloudflare Pages / Workers deployments thanks to the TanStack Start edge target.
@@ -172,6 +172,25 @@ MIT — for hackathon and demo purposes.
 3. Open `/wallet`, pick **Testnet** or **Mainnet** (segmented control, persisted to `localStorage`), and click **Connect Casper Wallet**.
 4. Fill the recipient public key and amount, then **Sign & broadcast**.
 
+**What ships in the transaction drawer**
+- Live pipeline: `Signed → Broadcasting → Executed → Finalized` driven by real `info_get_deploy` polling.
+- Timeouts, automatic retries, and clear error states with **Cancel** and **Retry** controls while polling.
+- Full deploy receipt after finalization: block hash, gas cost (in CSPR), timestamp, and a one-click **Casper Explorer** link.
+- Receipt export: **Copy raw**, **Export raw JSON**, and **Export decoded JSON** (adds network, explorer URL, gas in CSPR, and decoded fields).
+
+**Network switch & contracts config**
+- Segmented Testnet / Mainnet switch in the wallet header, persisted to `localStorage`.
+- Dedicated **`/settings/contracts`** page to manage per-network Odra contract hashes and x402 routing (recipient public key + native-transfer amount). Env-defaulted, stored locally, with live inline validation:
+  - 64-char hex contract hashes
+  - Valid Casper public keys (must start with `01`/`02`)
+  - Minimum 2.5 CSPR native payment
+  - Save is disabled until the whole form is valid.
+
+**Agent attestations (`/agents/*`)**
+- Reusable `AttestationPanel` on Yieldra / Verus / Quorra / Sentinel.
+- Attestations are broadcast today as x402 native-transfer deploys — the deploy hash is the on-chain receipt. When Odra entry points ship, these swap to real `mint_attestation` / `record_vote` / `route_deposit` calls with no UI change.
+- Manual **Refresh attestations** action plus automatic re-polling on mount, on network switch, and after a new deploy. Each card shows an "Updated Xs ago" freshness indicator.
+
 **Environment variables** (all optional — sensible public defaults ship in-repo, see `.env.example`)
 
 | Var | Default | Purpose |
@@ -180,8 +199,11 @@ MIT — for hackathon and demo purposes.
 | `VITE_CASPER_MAINNET_RPC` | `https://node.cspr.cloud/rpc` | Mainnet JSON-RPC endpoint |
 | `VITE_CASPER_TESTNET_EXPLORER` | `https://testnet.cspr.live` | Testnet explorer base URL |
 | `VITE_CASPER_MAINNET_EXPLORER` | `https://cspr.live` | Mainnet explorer base URL |
+| `VITE_CASPER_*_CONTRACT_*` | — | Optional per-network Odra contract hash defaults (see `.env.example`) |
+| `VITE_CASPER_*_X402_RECIPIENT` / `_AMOUNT` | — | Optional x402 routing defaults per network |
 
 **Still simulated** (called out in the UI):
-- Agent attestation JSON on `/agents/*` — needs Odra contracts deployed to Testnet.
-- x402 micropayment metering — needs Lovable Cloud + agent-key backend.
+- Odra contract entry points for agent attestations — deploys today settle as x402 native transfers pending Testnet contract deployment.
+- x402 upstream metering — needs Lovable Cloud + agent-key backend to price and settle third-party MCP calls server-side.
 - Legacy transaction rows in `/wallet` history — labeled *demo data*.
+

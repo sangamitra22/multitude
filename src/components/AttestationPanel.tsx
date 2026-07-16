@@ -155,7 +155,18 @@ export function AttestationPanel({ agent, memoPrefix }: Props) {
         >
           {busy ? "Signing…" : connected ? `Attest via x402 (${amountCspr} CSPR)` : "Connect wallet to attest"}
         </button>
+        <button
+          onClick={refreshAttestations}
+          disabled={refreshing || records.length === 0}
+          className="px-3 py-2 rounded-md border border-border text-xs hover:bg-secondary disabled:opacity-50"
+          title="Re-query Casper for the latest status of each recorded attestation"
+        >
+          {refreshing ? "Refreshing…" : "Refresh attestations"}
+        </button>
         <Link to="/settings/contracts" className="text-xs text-primary hover:underline">Settings → Contracts</Link>
+        {lastRefreshed && !refreshing && (
+          <span className="text-[10px] text-muted-foreground">Updated {timeAgo(lastRefreshed)}</span>
+        )}
         {flash && <span className="text-xs text-destructive">{flash}</span>}
       </div>
 

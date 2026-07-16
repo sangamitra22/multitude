@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCasperWallet } from "@/lib/casper/wallet";
 import { agentContractHash, listAttestations, recordAttestation, subscribeAttestations, updateAttestation, type AttestationRecord } from "@/lib/casper/attestation";
 import { getContractsConfig, type AgentKey, AGENT_LABELS } from "@/lib/casper/config";
 import { buildTransferDeployJson } from "@/lib/casper/buildTransfer";
-import { pollDeploy, putDeployRaw } from "@/lib/casper/rpc";
+import { fetchDeployReceipt, pollDeploy, putDeployRaw } from "@/lib/casper/rpc";
 import { explorerDeployUrl } from "@/lib/casper/network";
 
 interface Props {
@@ -18,6 +18,9 @@ export function AttestationPanel({ agent, memoPrefix }: Props) {
   const [records, setRecords] = useState<AttestationRecord[]>(() => listAttestations(network.id, agent));
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<number | null>(null);
+  const pollingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const refresh = () => setRecords(listAttestations(network.id, agent));
@@ -28,6 +31,52 @@ export function AttestationPanel({ agent, memoPrefix }: Props) {
   const contract = agentContractHash(network.id, agent);
   const x402 = getContractsConfig(network.id).x402;
   const amountCspr = (Number(BigInt(x402.paymentMotes)) / 1_000_000_000).toString();
+
+  // Re-poll a single pending attestation and mirror its status back into storage.
+  const repollOne = useCallback((rec: AttestationRecord) => {
+    if (!rec.deployHash || pollingRef.current.has(rec.id)) return;
+    pollingRef.current.add(rec.id);
+    pollDeploy(network, rec.deployHash, (u) => {
+      if (u.phase === "finalized") updateAttestation(rec.id, { status: "finalized", blockHash: u.blockHash, errorMessage: undefined });
+      else if (u.phase === "failed") updateAttestation(rec.id, { status: "failed", errorMessage: u.errorMessage });
+      else if (u.phase === "timeout") updateAttestation(rec.id, { errorMessage: u.errorMessage }); // stays pending
+    }, { timeoutMs: 60_000 })
+      .catch(() => {})
+      .finally(() => { pollingRef.current.delete(rec.id); });
+  }, [network]);
+
+  // Auto re-poll pending records on mount / network switch / new records arriving.
+  useEffect(() => {
+    const pendings = records.filter((r) => r.status === "pending" && r.deployHash && r.networkId === network.id);
+    pendings.forEach(repollOne);
+  }, [records, network.id, repollOne]);
+
+  async function refreshAttestations() {
+    setRefreshing(true);
+    setFlash(null);
+    try {
+      const current = listAttestations(network.id, agent);
+      // Force fresh receipts for anything not-failed with a hash.
+      await Promise.all(current.filter((r) => !!r.deployHash).map(async (r) => {
+        try {
+          const receipt = await fetchDeployReceipt(network, r.deployHash);
+          if (receipt.errorMessage) {
+            updateAttestation(r.id, { status: "failed", errorMessage: receipt.errorMessage, blockHash: receipt.blockHash });
+          } else if (receipt.blockHash) {
+            updateAttestation(r.id, { status: "finalized", blockHash: receipt.blockHash, errorMessage: undefined });
+          }
+        } catch {
+          // ignore per-record errors; individual polling will retry
+        }
+      }));
+      setLastRefreshed(Date.now());
+    } catch (e) {
+      setFlash(e instanceof Error ? e.message : "Refresh failed");
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
 
   async function attest() {
     if (!connected || !publicKey) {
@@ -106,7 +155,18 @@ export function AttestationPanel({ agent, memoPrefix }: Props) {
         >
           {busy ? "Signing…" : connected ? `Attest via x402 (${amountCspr} CSPR)` : "Connect wallet to attest"}
         </button>
+        <button
+          onClick={refreshAttestations}
+          disabled={refreshing || records.length === 0}
+          className="px-3 py-2 rounded-md border border-border text-xs hover:bg-secondary disabled:opacity-50"
+          title="Re-query Casper for the latest status of each recorded attestation"
+        >
+          {refreshing ? "Refreshing…" : "Refresh attestations"}
+        </button>
         <Link to="/settings/contracts" className="text-xs text-primary hover:underline">Settings → Contracts</Link>
+        {lastRefreshed && !refreshing && (
+          <span className="text-[10px] text-muted-foreground">Updated {timeAgo(lastRefreshed)}</span>
+        )}
         {flash && <span className="text-xs text-destructive">{flash}</span>}
       </div>
 
@@ -146,4 +206,13 @@ function short(h: string) {
   if (!h) return "";
   if (h.length <= 16) return h;
   return `${h.slice(0, 8)}…${h.slice(-6)}`;
+}
+
+function timeAgo(ts: number) {
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  return `${h}h ago`;
 }

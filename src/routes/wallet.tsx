@@ -467,9 +467,44 @@ function PollingStatus({ status, onRetry, onCancel }: { status: DeployStatus; on
 }
 
 function ReceiptPanel({ receipt, loading, error, network, hash }: { receipt: DeployReceipt | null; loading: boolean; error: string | null; network: ReturnType<typeof useCasperWallet>["network"]; hash: string }) {
+  function download(filename: string, content: string, mime = "application/json") {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function exportRaw() {
+    if (!receipt) return;
+    download(`deploy-${hash.slice(0, 12)}-raw.json`, safeStringify(receipt.raw));
+  }
+  function exportDecoded() {
+    if (!receipt) return;
+    const decoded = {
+      network: { id: network.id, label: network.label, chainName: network.chainName, rpc: network.rpc, explorer: network.explorer },
+      deploy: {
+        hash: receipt.hash,
+        blockHash: receipt.blockHash,
+        from: receipt.from,
+        timestamp: receipt.timestamp,
+        gasCostMotes: receipt.gasCostMotes,
+        gasCostCspr: receipt.gasCostMotes ? (Number(BigInt(receipt.gasCostMotes)) / 1_000_000_000).toString() : undefined,
+        errorMessage: receipt.errorMessage,
+        transfers: receipt.transfers ?? [],
+        explorerUrl: explorerDeployUrl(network, receipt.hash),
+      },
+      exportedAt: new Date().toISOString(),
+    };
+    download(`deploy-${hash.slice(0, 12)}-decoded.json`, safeStringify(decoded));
+  }
+  function copyJson() {
+    if (!receipt) return;
+    navigator.clipboard?.writeText(safeStringify(receipt.raw)).catch(() => {});
+  }
   return (
     <div className="rounded-lg border border-success/30 bg-success/5 p-4 space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="text-xs uppercase tracking-wider text-success font-semibold">Deploy receipt · Finalized</div>
         <a href={explorerDeployUrl(network, hash)} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Verify on {network.label} explorer →</a>
       </div>
@@ -484,6 +519,11 @@ function ReceiptPanel({ receipt, loading, error, network, hash }: { receipt: Dep
             <Info label="Timestamp" value={receipt.timestamp ?? "—"} />
             <Info label="Gas cost (motes)" value={receipt.gasCostMotes ?? "—"} />
             <Info label="Transfers" value={String(receipt.transfers?.length ?? 0)} />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={exportRaw} className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90">Export raw JSON</button>
+            <button onClick={exportDecoded} className="px-3 py-1.5 rounded-md border border-border text-xs hover:bg-secondary">Export decoded JSON</button>
+            <button onClick={copyJson} className="px-3 py-1.5 rounded-md border border-border text-xs hover:bg-secondary">Copy raw</button>
           </div>
           <details className="text-xs">
             <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Raw JSON-RPC response</summary>

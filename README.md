@@ -202,7 +202,7 @@ Other useful captures for the deck: `/` hero, `/dashboard` (per persona), each `
 1. Push this repo to GitHub.
 2. Import the repo in Vercel.
 3. Framework preset: **Other** (Vite). Build command: `bun run build`. Output dir: `.output/public` (TanStack Start default).
-4. No environment variables required (public Casper RPC defaults ship in-repo). Override via `VITE_CASPER_*` if you want a private endpoint.
+4. (Optional) Add the `VITE_CASPER_*` env vars listed in [Environment variables](#environment-variables) under **Settings → Environment Variables** (scope: Production, Preview, Development). None are required — public CSPR.cloud defaults ship in-repo — but set them to use a private RPC or to pre-seed contract hashes and x402 routing for every visitor.
 5. Deploy.
 
 > The project is also fully compatible with Cloudflare Pages / Workers deployments thanks to the TanStack Start edge target.

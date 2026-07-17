@@ -102,30 +102,79 @@ Open http://localhost:8080.
 
 ## Environment variables
 
-None required for the prototype. All data is mocked locally.
+All `VITE_CASPER_*` vars are **optional** — sensible public CSPR.cloud defaults ship in-repo. Set the ones below in **Vercel → Project → Settings → Environment Variables** (scope: Production, Preview, Development) when you want private endpoints or want to pre-seed the `/settings/contracts` page for every visitor. Anything left blank falls back to the value in `.env.example` and can still be overridden per-browser from `/settings/contracts`.
+
+### Network switching (RPC + explorers)
+
+| Var | Default | Purpose |
+|---|---|---|
+| `VITE_CASPER_TESTNET_RPC` | `https://node.testnet.cspr.cloud/rpc` | Testnet JSON-RPC endpoint used for `account_put_deploy` and `info_get_deploy` polling |
+| `VITE_CASPER_MAINNET_RPC` | `https://node.cspr.cloud/rpc` | Mainnet JSON-RPC endpoint |
+| `VITE_CASPER_TESTNET_EXPLORER` | `https://testnet.cspr.live` | Base URL used to build deploy/account links in the receipt panel |
+| `VITE_CASPER_MAINNET_EXPLORER` | `https://cspr.live` | Mainnet explorer base URL |
+
+The Testnet ⇄ Mainnet switch in the wallet header reads these at runtime; users can flip networks without a redeploy.
+
+### Odra contract hashes (per network)
+
+Fill these in once each agent contract is deployed. Values must be **64-char hex** (no `hash-` prefix). Leave blank until deployed — the UI surfaces a warning and falls back to x402 native-transfer attestations.
+
+| Var | Purpose |
+|---|---|
+| `VITE_CASPER_TESTNET_VERUS_CONTRACT` / `VITE_CASPER_MAINNET_VERUS_CONTRACT` | Verus RWA oracle attestation contract |
+| `VITE_CASPER_TESTNET_SENTINEL_CONTRACT` / `VITE_CASPER_MAINNET_SENTINEL_CONTRACT` | Sentinel compliance / KYC attestation contract |
+| `VITE_CASPER_TESTNET_QUORRA_CONTRACT` / `VITE_CASPER_MAINNET_QUORRA_CONTRACT` | Quorra DAO governance / vote contract |
+| `VITE_CASPER_TESTNET_YIELD_CONTRACT` / `VITE_CASPER_MAINNET_YIELD_CONTRACT` | Yieldra yield-router contract |
+
+### x402 micropayment routing
+
+| Var | Default | Purpose |
+|---|---|---|
+| `VITE_CASPER_TESTNET_X402_RECIPIENT` / `VITE_CASPER_MAINNET_X402_RECIPIENT` | — | Casper public key (66 hex for ed25519 / 68 hex for secp256k1) that receives x402 payments |
+| `VITE_CASPER_TESTNET_X402_MOTES` / `VITE_CASPER_MAINNET_X402_MOTES` | `42000000` | Motes per x402 call — minimum `2500000000` (2.5 CSPR) for native transfers |
 
 ## Demo script for judges
+
+**Part A — narrative walkthrough (~3 min)**
 
 1. Land on `/` — read tagline, problem, solution, meet the crew, why Casper.
 2. Click **Pick your persona** → choose, e.g., DeFi Investor.
 3. Complete signup (18+, country, terms, compliance).
-4. Land on `/dashboard` — point out persona-tailored card, agent crew, x402 spend, on-chain actions, alerts, system health.
-5. Open `/agents/yield` — change risk tolerance, watch decision trace and prepared CSPR.click signing payload.
-6. Open `/agents/rwa` — show 5-source oracle, attestation JSON.
-7. Open `/agents/dao` — show 4-agent debate and cast a vote.
-8. Open `/agents/compliance` — walk through ZK KYC flow end to end.
-9. Open `/architecture` and `/docs` to show the toolkit alignment.
-10. Logout from the header.
+4. Land on `/dashboard` — call out the persona-tailored KPI cards, next-action recommendations, agent crew, x402 spend, on-chain actions, alerts, and system health.
+5. Open the persona-allowed agent workflow (Yieldra / Verus / Quorra / Sentinel) — walk the decision trace and the attestation panel.
+
+**Part B — real Casper deploy (~2 min, the money shot)**
+
+6. Open `/wallet`. Confirm the header shows **Testnet** (segmented switch, persisted). Click **Connect Casper Wallet** and approve in the Casper Wallet extension. The connected public key and balance appear.
+7. Enter a recipient public key (e.g. your own second Testnet account) and an amount ≥ **2.5 CSPR**. Click **Sign & broadcast**.
+8. In the transaction drawer, narrate the live pipeline: **Signed → Broadcasting → Executed → Finalized**. If polling is slow, point at the **Cancel** / **Retry** controls and the timeout state.
+9. On **Finalized**, open the **Deploy receipt** panel — call out block hash, gas cost (in CSPR), timestamp, and the one-click **View on Casper Explorer** link (opens `cspr.live` in a new tab, showing the same deploy hash).
+10. Click **Export decoded JSON** to download the enriched receipt (network + explorer URL + gas in CSPR + decoded fields), and **Copy raw** to show the raw RPC payload. This is the auditable artifact judges keep.
+
+**Part C — config + attestations (~1 min)**
+
+11. Open `/settings/contracts`. Paste an invalid hash (e.g. `hash-abc`) to trigger the inline validation error, a short public key to trigger the ed25519/secp256k1 rule, and an amount below `2500000000` to trigger the 2.5 CSPR minimum. Save stays disabled until every field is valid.
+12. Back on the agent page, click **Refresh attestations** — each recorded attestation re-polls `info_get_deploy` and the "Updated Xs ago" indicator resets.
+13. Open `/architecture` and `/docs` to close on the toolkit alignment and roadmap.
+14. Logout from the header.
 
 ## Screenshots
 
-Run the app locally and capture:
-- `/` hero
-- `/dashboard`
-- each `/agents/*` workflow
-- `/architecture`
+Screenshots for the README live in `docs/screenshots/`. The two below are the marquee shots referenced by this README — capture them locally (Cmd/Ctrl-Shift-4 or DevTools device mode) and drop the files in place; the README renders them automatically.
 
-Place them under `docs/screenshots/` (folder is created on first commit).
+### Wallet drawer — finalized receipt + exports
+
+`/wallet` → Sign & broadcast a Testnet deploy → wait for **Finalized** → open the drawer's **Deploy receipt** panel. Capture the receipt block (hash, gas, timestamp, Explorer link) and the **Copy raw / Export raw JSON / Export decoded JSON** action row.
+
+![Wallet drawer — finalized receipt with export actions](docs/screenshots/wallet-receipt-exports.png)
+
+### /settings/contracts — inline validation errors
+
+`/settings/contracts` → enter a `hash-` prefixed contract hash, a truncated public key, and a motes value below `2500000000`. Capture the red inline errors, the char counters, and the disabled **Save** button.
+
+![/settings/contracts — inline validation errors](docs/screenshots/settings-contracts-validation.png)
+
+Other useful captures for the deck: `/` hero, `/dashboard` (per persona), each `/agents/*` workflow (with the attestation panel visible), and `/architecture`. Place them under `docs/screenshots/` (folder is created on first commit).
 
 ## Roadmap
 
@@ -153,7 +202,7 @@ Place them under `docs/screenshots/` (folder is created on first commit).
 1. Push this repo to GitHub.
 2. Import the repo in Vercel.
 3. Framework preset: **Other** (Vite). Build command: `bun run build`. Output dir: `.output/public` (TanStack Start default).
-4. No environment variables required (public Casper RPC defaults ship in-repo). Override via `VITE_CASPER_*` if you want a private endpoint.
+4. (Optional) Add the `VITE_CASPER_*` env vars listed in [Environment variables](#environment-variables) under **Settings → Environment Variables** (scope: Production, Preview, Development). None are required — public CSPR.cloud defaults ship in-repo — but set them to use a private RPC or to pre-seed contract hashes and x402 routing for every visitor.
 5. Deploy.
 
 > The project is also fully compatible with Cloudflare Pages / Workers deployments thanks to the TanStack Start edge target.

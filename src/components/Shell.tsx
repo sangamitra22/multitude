@@ -49,6 +49,7 @@ export function Header() {
                 return <Link to={path} className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Agents</Link>;
               })()}
               <Link to="/settings/contracts" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Settings</Link>
+              <Link to="/demo" className="hover:text-foreground transition" activeProps={{ className: "text-foreground" }}>Judge Demo</Link>
             </>
 
 

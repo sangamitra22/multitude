@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { Header, Footer } from "@/components/Shell";
 import { CasperWalletProvider } from "@/lib/casper/wallet";
+import { PreflightGate } from "@/components/PreflightGate";
 
 function NotFoundComponent() {
   return (
@@ -127,13 +128,15 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CasperWalletProvider>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              <Outlet />
-            </main>
-            <Footer />
-          </div>
+          <PreflightGate>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+              <Footer />
+            </div>
+          </PreflightGate>
         </CasperWalletProvider>
       </AuthProvider>
     </QueryClientProvider>

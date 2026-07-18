@@ -122,6 +122,7 @@ function Wallet() {
       setSigned((s) => [{ ...draft, hash: preHash, phase: "signed" }, ...s]);
       const rpcHash = await putDeployRaw(network, signedDeploy);
       setSigned((s) => s.map((t) => t.id === id ? { ...t, hash: rpcHash, phase: "broadcasting" } : t));
+      window.dispatchEvent(new Event("multitude:demo:deploy-broadcast"));
       runPolling(id, rpcHash);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Sign / broadcast failed";
@@ -478,10 +479,11 @@ function ReceiptPanel({ receipt, loading, error, network, hash }: { receipt: Dep
   function exportRaw() {
     if (!receipt) return;
     download(`deploy-${hash.slice(0, 12)}-raw.json`, safeStringify(receipt.raw));
+    window.dispatchEvent(new Event("multitude:demo:receipt-exported"));
   }
-  function exportDecoded() {
-    if (!receipt) return;
-    const decoded = {
+  function decodedPayload() {
+    if (!receipt) return null;
+    return {
       network: { id: network.id, label: network.label, chainName: network.chainName, rpc: network.rpc, explorer: network.explorer },
       deploy: {
         hash: receipt.hash,
@@ -496,7 +498,25 @@ function ReceiptPanel({ receipt, loading, error, network, hash }: { receipt: Dep
       },
       exportedAt: new Date().toISOString(),
     };
+  }
+  function exportDecoded() {
+    const decoded = decodedPayload();
+    if (!decoded) return;
     download(`deploy-${hash.slice(0, 12)}-decoded.json`, safeStringify(decoded));
+    window.dispatchEvent(new Event("multitude:demo:receipt-exported"));
+  }
+  function downloadReceiptBundle() {
+    if (!receipt) return;
+    const decoded = decodedPayload();
+    const bundle = {
+      product: "Multitude",
+      generatedAt: new Date().toISOString(),
+      explorerUrl: explorerDeployUrl(network, receipt.hash),
+      decoded,
+      raw: receipt.raw,
+    };
+    download(`multitude-receipt-${hash.slice(0, 12)}.json`, safeStringify(bundle));
+    window.dispatchEvent(new Event("multitude:demo:receipt-exported"));
   }
   function copyJson() {
     if (!receipt) return;
@@ -521,10 +541,12 @@ function ReceiptPanel({ receipt, loading, error, network, hash }: { receipt: Dep
             <Info label="Transfers" value={String(receipt.transfers?.length ?? 0)} />
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={exportRaw} className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90">Export raw JSON</button>
+            <button onClick={downloadReceiptBundle} className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90">Download receipt JSON</button>
+            <button onClick={exportRaw} className="px-3 py-1.5 rounded-md border border-border text-xs hover:bg-secondary">Export raw JSON</button>
             <button onClick={exportDecoded} className="px-3 py-1.5 rounded-md border border-border text-xs hover:bg-secondary">Export decoded JSON</button>
             <button onClick={copyJson} className="px-3 py-1.5 rounded-md border border-border text-xs hover:bg-secondary">Copy raw</button>
           </div>
+          <p className="text-[10px] text-muted-foreground">"Download receipt JSON" bundles the decoded fields, raw RPC response, and explorer link into a single judge-ready file.</p>
           <details className="text-xs">
             <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Raw JSON-RPC response</summary>
             <pre className="mt-2 p-3 bg-input rounded overflow-x-auto text-[10px] leading-relaxed max-h-64">{safeStringify(receipt.raw)}</pre>

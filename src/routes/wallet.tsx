@@ -122,6 +122,7 @@ function Wallet() {
       setSigned((s) => [{ ...draft, hash: preHash, phase: "signed" }, ...s]);
       const rpcHash = await putDeployRaw(network, signedDeploy);
       setSigned((s) => s.map((t) => t.id === id ? { ...t, hash: rpcHash, phase: "broadcasting" } : t));
+      window.dispatchEvent(new Event("multitude:demo:deploy-broadcast"));
       runPolling(id, rpcHash);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Sign / broadcast failed";

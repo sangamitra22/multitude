@@ -540,10 +540,12 @@ function ReceiptPanel({ receipt, loading, error, network, hash }: { receipt: Dep
             <Info label="Transfers" value={String(receipt.transfers?.length ?? 0)} />
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={exportRaw} className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90">Export raw JSON</button>
+            <button onClick={downloadReceiptBundle} className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90">Download receipt JSON</button>
+            <button onClick={exportRaw} className="px-3 py-1.5 rounded-md border border-border text-xs hover:bg-secondary">Export raw JSON</button>
             <button onClick={exportDecoded} className="px-3 py-1.5 rounded-md border border-border text-xs hover:bg-secondary">Export decoded JSON</button>
             <button onClick={copyJson} className="px-3 py-1.5 rounded-md border border-border text-xs hover:bg-secondary">Copy raw</button>
           </div>
+          <p className="text-[10px] text-muted-foreground">"Download receipt JSON" bundles the decoded fields, raw RPC response, and explorer link into a single judge-ready file.</p>
           <details className="text-xs">
             <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Raw JSON-RPC response</summary>
             <pre className="mt-2 p-3 bg-input rounded overflow-x-auto text-[10px] leading-relaxed max-h-64">{safeStringify(receipt.raw)}</pre>

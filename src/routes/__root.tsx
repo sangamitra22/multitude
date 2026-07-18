@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { Header, Footer } from "@/components/Shell";
 import { CasperWalletProvider } from "@/lib/casper/wallet";
+import { PreflightGate } from "@/components/PreflightGate";
 
 function NotFoundComponent() {
   return (

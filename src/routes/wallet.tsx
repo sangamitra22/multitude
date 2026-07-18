@@ -478,10 +478,11 @@ function ReceiptPanel({ receipt, loading, error, network, hash }: { receipt: Dep
   function exportRaw() {
     if (!receipt) return;
     download(`deploy-${hash.slice(0, 12)}-raw.json`, safeStringify(receipt.raw));
+    window.dispatchEvent(new Event("multitude:demo:receipt-exported"));
   }
-  function exportDecoded() {
-    if (!receipt) return;
-    const decoded = {
+  function decodedPayload() {
+    if (!receipt) return null;
+    return {
       network: { id: network.id, label: network.label, chainName: network.chainName, rpc: network.rpc, explorer: network.explorer },
       deploy: {
         hash: receipt.hash,
@@ -496,7 +497,25 @@ function ReceiptPanel({ receipt, loading, error, network, hash }: { receipt: Dep
       },
       exportedAt: new Date().toISOString(),
     };
+  }
+  function exportDecoded() {
+    const decoded = decodedPayload();
+    if (!decoded) return;
     download(`deploy-${hash.slice(0, 12)}-decoded.json`, safeStringify(decoded));
+    window.dispatchEvent(new Event("multitude:demo:receipt-exported"));
+  }
+  function downloadReceiptBundle() {
+    if (!receipt) return;
+    const decoded = decodedPayload();
+    const bundle = {
+      product: "Multitude",
+      generatedAt: new Date().toISOString(),
+      explorerUrl: explorerDeployUrl(network, receipt.hash),
+      decoded,
+      raw: receipt.raw,
+    };
+    download(`multitude-receipt-${hash.slice(0, 12)}.json`, safeStringify(bundle));
+    window.dispatchEvent(new Event("multitude:demo:receipt-exported"));
   }
   function copyJson() {
     if (!receipt) return;

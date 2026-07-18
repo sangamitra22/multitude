@@ -15,6 +15,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PersonasRouteImport } from './routes/personas'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocsRouteImport } from './routes/docs'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ArchitectureRouteImport } from './routes/architecture'
 import { Route as IndexRouteImport } from './routes/index'
@@ -52,6 +53,11 @@ const LoginRoute = LoginRouteImport.update({
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/architecture': typeof ArchitectureRoute
   '/dashboard': typeof DashboardRoute
+  '/demo': typeof DemoRoute
   '/docs': typeof DocsRoute
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/architecture': typeof ArchitectureRoute
   '/dashboard': typeof DashboardRoute
+  '/demo': typeof DemoRoute
   '/docs': typeof DocsRoute
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/architecture': typeof ArchitectureRoute
   '/dashboard': typeof DashboardRoute
+  '/demo': typeof DemoRoute
   '/docs': typeof DocsRoute
   '/login': typeof LoginRoute
   '/personas': typeof PersonasRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/architecture'
     | '/dashboard'
+    | '/demo'
     | '/docs'
     | '/login'
     | '/personas'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/architecture'
     | '/dashboard'
+    | '/demo'
     | '/docs'
     | '/login'
     | '/personas'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/architecture'
     | '/dashboard'
+    | '/demo'
     | '/docs'
     | '/login'
     | '/personas'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ArchitectureRoute: typeof ArchitectureRoute
   DashboardRoute: typeof DashboardRoute
+  DemoRoute: typeof DemoRoute
   DocsRoute: typeof DocsRoute
   LoginRoute: typeof LoginRoute
   PersonasRoute: typeof PersonasRoute
@@ -254,6 +267,13 @@ declare module '@tanstack/react-router' {
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -319,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ArchitectureRoute: ArchitectureRoute,
   DashboardRoute: DashboardRoute,
+  DemoRoute: DemoRoute,
   DocsRoute: DocsRoute,
   LoginRoute: LoginRoute,
   PersonasRoute: PersonasRoute,
